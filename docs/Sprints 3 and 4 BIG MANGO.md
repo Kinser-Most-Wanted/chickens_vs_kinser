@@ -1,4 +1,4 @@
-\=== SUGGESTED SPRINT GOALS \===
+# **\=== SUGGESTED SPRINT GOALS \===**
 
 ---
 
@@ -6,274 +6,258 @@
 
 ### **SPRINT GOAL:**
 
-Improve the internal design, structure, and testability of the client-server game system to support sustainable development and deeper understanding of software engineering practices.
+Enhance usability and system functionality by implementing persistent game state, configurable settings, and core gameplay controls while refining the user interface.
 
 ---
 
 ### **SOFTWARE ENGINEERING TOPICS:**
 
-* System Design (client-server architecture, separation of concerns)  
-* SDLC (design refinement, implementation readiness)  
-* Problem Solving (state management, interaction modeling)  
-* Testing (testability and validation strategy)  
-* Agile & Scrum (iterative refinement, technical excellence)  
-* Teamwork & Collaboration (shared understanding through design artifacts)
+* State Management (saving/loading game data)  
+* File Handling (local storage, config files)  
+* SDLC (feature expansion and validation)  
+* Agile & Scrum (incremental feature delivery)  
+* Testing (validating persistence and configs)  
+* Teamwork & Collaboration  
+  ---
 
----
+  ## **SUPPORTING PBIs:**
 
-### **SUPPORTING PBIs:**
+  ---
 
----
+  ### **Priority: High**
 
-**Priority: High**  
- **User Story:**  
- As a developer, I want to clearly define client-server responsibilities, so that system logic is properly separated and easier to maintain.
-
-**Acceptance Criteria:**
-
-* A documented description exists outlining responsibilities of the client and server  
-* At least three examples of functionality are categorized as client-side or server-side  
-* The team reviews and agrees on the responsibility split during grooming or planning  
-* The documentation is accessible to all team members
-
----
-
-**Priority: High**  
- **User Story:**  
- As a developer, I want a defined entity model for units and enemies, so that new game elements can be added consistently.
+**User Story:**  
+As a player, I want to save my game progress into one of multiple slots, so that I can return to my game later.
 
 **Acceptance Criteria:**
 
-* A design artifact exists describing entity structure (properties and behaviors)  
-* Shared and unique attributes between units and enemies are identified  
-* The model supports adding at least one additional entity type conceptually  
-* The team can explain how interactions use this model
+* Player can save to one of three save slots  
+* Each save slot stores independent data  
+* Save data persists after restarting the application  
+* Saved data includes grid state, currency, and progression  
+* Save functionality works without errors during demo  
+  ---
 
----
+  ### **Priority: High**
 
-**Priority: High**  
- **User Story:**  
- As a developer, I want a defined game state model, so that the system behaves predictably and is easier to debug.
-
-**Acceptance Criteria:**
-
-* A list of game states is defined (e.g., start, running, win, lose)  
-* State transitions are documented and clearly described  
-* The location of state management (client or server) is defined  
-* The team can walk through at least one full state transition scenario
-
----
-
-**Priority: High**  
- **User Story:**  
- As a developer, I want clearly defined interaction rules between units and enemies, so that gameplay behavior is consistent and testable.
+**User Story:**  
+As a player, I want to load a saved game at startup, so that I can continue from previous progress.
 
 **Acceptance Criteria:**
 
-* At least one interaction scenario is documented step-by-step  
-* Expected outcomes of interactions are clearly defined  
-* The interaction rules are consistent across repeated scenarios  
-* The team can explain how the rules would be validated
+* Three save slots are displayed at startup  
+* Player can select an existing save or start a new game  
+* Game state restores correctly from selected save  
+* No errors occur during load process  
+  ---
 
----
+  ### **Priority: High**
 
-**Priority: Medium**  
- **User Story:**  
- As a developer, I want agreed-upon coding and structure guidelines, so that the team can collaborate effectively and maintain code quality.
-
-**Acceptance Criteria:**
-
-* A documented set of coding or structure guidelines exists  
-* Guidelines include naming conventions and file organization expectations  
-* All team members review the guidelines  
-* The guidelines are accessible and referenced during development
-
----
-
-**Priority: Medium**  
- **User Story:**  
- As a developer, I want to introduce basic observability into the system, so that I can understand and debug system behavior.
+**User Story:**  
+As a player, I want to modify game settings through a config file, so that I can customize gameplay.
 
 **Acceptance Criteria:**
 
-* At least three key system events are identified for logging or visibility  
-* A method for observing these events (e.g., logs, console output) is defined  
-* The team demonstrates how an interaction can be observed  
-* Observability approach is documented and accessible
+* Config file is editable outside the game  
+* Config changes can be reloaded during runtime  
+* Config controls include gameplay-related values (e.g., speed, grid size)  
+* Invalid configurations are handled without crashing  
+  ---
 
----
+  ### **Priority: High**
 
-**Priority: Medium**  
- **User Story:**  
- As a developer, I want to define a testability approach, so that we can consistently validate system behavior.
-
-**Acceptance Criteria:**
-
-* A document exists outlining how system behavior will be validated  
-* At least two validation scenarios are defined (e.g., interaction, state change)  
-* Expected outcomes are clearly described for each scenario  
-* The team reviews and agrees on the validation approach
-
----
-
-**Priority: Low**  
- **User Story:**  
- As a developer, I want design documentation that supports implementation, so that I can more easily understand and build system features.
+**User Story:**  
+As a player, I want to pause and resume the game, so that I can control gameplay flow.
 
 **Acceptance Criteria:**
 
-* At least one design artifact is created (diagram, flowchart, or structured notes)  
-* The artifact directly relates to at least one PBI  
-* The documentation is accessible to all team members  
-* The team can reference the artifact during discussion or planning
+* Game pauses completely when activated  
+* No updates occur while paused  
+* Resume restores gameplay correctly  
+* Pause/resume is demonstrated during review  
+  ---
 
----
+  ### **Priority: Medium**
 
----
+**User Story:**  
+As a player, I want to speed up gameplay, so that I can progress faster when desired.
 
-## **SPRINT: 4**
+**Acceptance Criteria:**
 
-### **SPRINT GOAL:**
+* Fast-forward toggle is available  
+* Game speed increases when activated  
+* Game logic remains stable at increased speed  
+  ---
 
-Enhance system completeness, usability, and validation maturity by defining a full game loop, improving demonstration quality, and strengthening testing practices.
+  ### **Priority: Medium**
+
+**User Story:**  
+As a developer, I want to organize the UI layout, so that the interface is clear and usable.
+
+**Acceptance Criteria:**
+
+* UI elements are grouped logically (controls, game area, indicators)  
+* UI does not obstruct gameplay  
+* Layout is consistent across runs  
+  ---
+
+  ### **Priority: Medium**
+
+**User Story:**  
+As a player, I want to see wave progression, so that I understand my progress in the game.
+
+**Acceptance Criteria:**
+
+* A visual progress indicator is displayed  
+* Progress updates in real time  
+* Progress reflects current wave accurately  
+  ---
+
+  ---
+
+  # **\=== SUGGESTED SPRINT GOALS \===**
+
+  ---
+
+  ## **SPRINT: 4**
+
+  ### **SPRINT GOAL:**
+
+Expand gameplay depth by implementing core mechanics, progression systems, and dynamic difficulty to create a functional and engaging game loop.
 
 ---
 
 ### **SOFTWARE ENGINEERING TOPICS:**
 
-* SDLC (implementation → validation → demonstration)  
-* Testing (repeatable validation and scenario definition)  
-* Problem Solving (edge cases and system completeness)  
-* Agile & Scrum (incremental delivery, review readiness)  
-* Project Management (demonstration planning, validation strategy)  
-* Teamwork & Collaboration
+* Game Logic Design (combat, progression, scaling)  
+* Algorithmic Thinking (wave scaling, lane expansion)  
+* SDLC (feature completion and refinement)  
+* Agile & Scrum (delivering a playable product increment)  
+* Testing (gameplay validation and edge cases)  
+* Teamwork & Collaboration  
+  ---
 
----
+  ## **SUPPORTING PBIs:**
 
-### **SUPPORTING PBIs:**
+  ---
 
----
+  ### **Priority: High**
 
-**Priority: High**  
- **User Story:**  
- As a player, I want a complete game loop, so that I can experience a full and meaningful interaction from start to finish.
-
-**Acceptance Criteria:**
-
-* A start condition for the game is defined  
-* At least one win or loss condition is defined  
-* The sequence from start to end is documented  
-* The team can walk through a complete game scenario
-
----
-
-**Priority: High**  
- **User Story:**  
- As a developer, I want repeatable testing scenarios, so that system behavior can be consistently validated.
+**User Story:**  
+As a player, I want to place characters on the grid, so that I can interact with gameplay strategically.
 
 **Acceptance Criteria:**
 
-* At least three testing scenarios are documented  
-* Each scenario includes defined inputs and expected outcomes  
-* Scenarios can be repeated with consistent results  
-* The team demonstrates at least one scenario during review
+* Characters can be placed on valid grid tiles  
+* Invalid placements are prevented  
+* Placement updates the game state immediately  
+* Placement works consistently across runs  
+  ---
 
----
+  ### **Priority: High**
 
-**Priority: High**  
- **User Story:**  
- As a team, we want a defined demonstration strategy, so that we can clearly show that acceptance criteria are met.
-
-**Acceptance Criteria:**
-
-* A documented demo plan exists outlining what will be shown  
-* The demo maps directly to completed PBIs and their acceptance criteria  
-* The team rehearses or walks through the demo process  
-* The demo can be executed without errors or ambiguity
-
----
-
-**Priority: High**  
- **User Story:**  
- As a player, I want clear feedback from interactions, so that I can understand what is happening in the game.
+**User Story:**  
+As a developer, I want characters to interact with enemies, so that gameplay mechanics are functional.
 
 **Acceptance Criteria:**
 
-* At least one form of feedback is defined for interactions (visual or logical)  
-* Feedback corresponds to specific actions or events  
-* Feedback is consistent across multiple interactions  
-* The team demonstrates how feedback improves understanding
+* At least one character can damage an enemy  
+* Enemies respond correctly to interactions  
+* Combat integrates with the game loop  
+* Behavior is consistent across runs  
+  ---
 
----
+  ### **Priority: High**
 
-**Priority: Medium**  
- **User Story:**  
- As a developer, I want to introduce controlled gameplay complexity, so that the system can support more varied scenarios.
-
-**Acceptance Criteria:**
-
-* At least one new variation (e.g., additional enemy or behavior) is defined  
-* The variation integrates with existing system design  
-* The impact on existing interactions is understood and documented  
-* The team can explain how the system supports this variation
-
----
-
-**Priority: Medium**  
- **User Story:**  
- As a developer, I want to identify and handle edge cases, so that the system behaves reliably under unexpected conditions.
+**User Story:**  
+As a player, I want a currency system, so that I can earn and use resources during gameplay.
 
 **Acceptance Criteria:**
 
-* At least three edge cases are identified (e.g., invalid placement, unexpected input)  
-* Expected system behavior for each case is defined  
-* Edge case handling is documented  
-* The team can explain how these cases are validated
+* Currency is earned during gameplay  
+* Multiple currency types are tracked  
+* Currency values persist through save/load  
+* Currency is displayed in the UI  
+  ---
 
----
+  ### **Priority: High**
 
-**Priority: Low**  
- **User Story:**  
- As a player, I want improved UI clarity, so that I can more easily understand and interact with the game.
+**User Story:**  
+As a player, I want increasing difficulty, so that the game becomes more challenging over time.
 
 **Acceptance Criteria:**
 
-* At least one UI improvement is defined and documented  
-* The improvement enhances usability or clarity  
-* The change is demonstrated or described clearly  
-* The team agrees the improvement adds value
+* Enemy speed increases over time  
+* Spawn rates scale with progression  
+* Difficulty progression is noticeable  
+* Game remains playable  
+  ---
 
----
+  ### **Priority: High**
 
----
+**User Story:**  
+As a player, I want the number of lanes to expand as I progress, so that gameplay evolves.
 
-# **\=== PRODUCT BACKLOG \===**
+**Acceptance Criteria:**
 
-### **🔴 High Priority**
+* Game starts with three lanes  
+* Additional lanes unlock based on progression  
+* UI adjusts correctly to expanded grid  
+* No errors occur during expansion  
+  ---
 
-1. Define client-server responsibilities  
-2. Design entity model (units/enemies)  
-3. Define game state model  
-4. Define interaction rules (unit ↔ enemy)  
-5. Define complete game loop  
-6. Establish repeatable testing scenarios  
-7. Define demonstration strategy  
-8. Improve interaction feedback
+  ### **Priority: Medium**
 
----
+**User Story:**  
+As a player, I want a lane-clearing mechanic, so that I have a last line of defense.
 
-### **🟡 Medium Priority**
+**Acceptance Criteria:**
 
-9. Define coding and structure guidelines  
-10. Introduce observability (logging/debugging)  
-11. Define testability approach  
-12. Introduce controlled gameplay complexity  
-13. Identify and handle edge cases
+* Mechanic activates when enemies reach the end  
+* Clears all enemies in that lane  
+* Limited to one use per lane  
+  ---
 
----
+  ### **Priority: Medium**
 
-### **🟢 Low Priority**
+**User Story:**  
+As a player, I want to quickly restart the game, so that I can try again without delay.
 
-14. Create supporting design documentation  
-15. Improve UI clarity 
+**Acceptance Criteria:**
 
+* Game resets instantly  
+* All state returns to initial conditions  
+* No residual data remains  
+  ---
+
+  ---
+
+  # **\=== PRODUCT BACKLOG \===**
+
+  ### **🔴 High Priority**
+
+1. Save system with three slots  
+2. Load system and startup selection  
+3. Runtime config system (reloadable)  
+4. Pause and resume functionality  
+5. Character placement system  
+6. Combat / interaction system  
+7. Currency system implementation  
+8. Enemy wave scaling system  
+9. Dynamic lane expansion system  
+   ---
+
+   ### **🟡 Medium Priority**
+
+10. UI layout organization  
+11. Fast-forward system  
+12. Wave progress indicator  
+13. Lane-clearing mechanic (attack helicopter)  
+14. Quick restart system  
+    ---
+
+    ### **🟢 Low Priority**
+
+15. Additional UI polish  
+16. Additional gameplay balancing  
+17. Extended configuration options
