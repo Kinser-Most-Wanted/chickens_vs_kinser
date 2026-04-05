@@ -23,9 +23,9 @@ jobs:
 
   run-deploy:
     if: github.event.action != 'closed'
-    needs: run-tests
+    needs: [run-lint, run-tests]
     uses: ./.github/workflows/deploy.yml
 
-  # destroy-pr:
-  #   if: github.event_name == 'pull_request' && github.event.action == 'closed'
-  #   uses: ./.github/workflows/destroy.yml
+  destroy-pr:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    uses: ./.github/workflows/destroy.yml

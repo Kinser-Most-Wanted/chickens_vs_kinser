@@ -10,6 +10,9 @@ permissions:
 jobs:
   destroy:
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ github.event.pull_request.number || github.ref_name }}
+      cancel-in-progress: false
     steps:
       - name: Determine stack name
         id: stack
@@ -29,4 +32,5 @@ jobs:
           aws-region: us-east-1
           role-to-assume: ${{ vars.DEPLOY_ROLE }}
 
+      - run: chmod +x deploy/destroy.sh
       - run: ./deploy/destroy.sh "${{ steps.stack.outputs.stack_name }}"
