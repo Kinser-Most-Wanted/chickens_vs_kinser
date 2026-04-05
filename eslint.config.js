@@ -1,13 +1,11 @@
-export default [
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+	eslint.configs.recommended,
+	...tseslint.configs.recommended,
 	{
-		files: ["src/**/*.js"],
-		languageOptions: {
-			ecmaVersion: "latest",
-			sourceType: "module"
-		},
-		rules: {
-			"no-unused-vars": "warn",
-			"no-undef": "error"
-		}
+		files: ["src/**/*.ts"],
+		ignores: ["node_modules/**", "playwright-report/**", "test-results/**"]
 	}
-];
+);
