@@ -114,6 +114,8 @@ Resources:
                   - cloudfront:UpdateOriginAccessControl
                   - cloudfront:DeleteOriginAccessControl
                   - cloudfront:ListTagsForResource
+                  - cloudfront:TagResource
+                  - cloudfront:UntagResource
                 Resource: "*"
 
 Outputs:
