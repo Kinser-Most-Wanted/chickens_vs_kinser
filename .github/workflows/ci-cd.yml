@@ -1,0 +1,31 @@
+name: CI/CD
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  push:
+    branches:
+      - main
+      - stage
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  run-lint:
+    if: github.event.action != 'closed'
+    uses: ./.github/workflows/lint.yml
+
+  run-tests:
+    if: github.event.action != 'closed'
+    uses: ./.github/workflows/test.yml
+
+  run-deploy:
+    if: github.event.action != 'closed'
+    needs: [run-lint, run-tests]
+    uses: ./.github/workflows/deploy.yml
+
+  destroy-pr:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    uses: ./.github/workflows/destroy.yml
