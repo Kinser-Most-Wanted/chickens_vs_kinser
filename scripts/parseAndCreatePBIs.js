@@ -115,7 +115,10 @@ async function createIssues(pbis) {
         repo,
         title,
         body: formatToTemplate(pbi),
-        labels: pbi.priority ? [pbi.priority] : []
+        labels: [
+          "PBI",
+          ...(pbi.priority ? [pbi.priority] : [])
+        ]
       });
 
       console.log(`Created issue: ${title}`);
