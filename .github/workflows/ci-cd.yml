@@ -8,6 +8,19 @@ on:
       - main
       - stage
 
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - 'pbis/**/*.md'
+
+  push:
+    branches:
+      - main
+      - stage
+    paths:
+      - 'pbis/**/*.md'
+
 permissions:
   id-token: write
   contents: read
@@ -29,3 +42,28 @@ jobs:
   destroy-pr:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     uses: ./.github/workflows/destroy.yml
+
+create-pbis:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install @octokit/rest
+
+      - name: Run PBI generator
+        run: node scripts/parseAndCreatePBIs.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
