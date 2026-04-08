@@ -16,6 +16,7 @@ const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 // -----------------------------
 function getChangedMarkdownFiles() {
   try {
+    // Try to diff against previous commit
     const output = execSync("git diff --name-only HEAD^ HEAD")
       .toString()
       .split('\n');
@@ -23,9 +24,14 @@ function getChangedMarkdownFiles() {
     return output.filter(file =>
       file.startsWith('pbis/') && file.endsWith('.md')
     );
+
   } catch (err) {
-    console.error("Error getting changed files:", err);
-    return [];
+    console.warn("Fallback: no previous commit, scanning all pbis/*.md");
+
+    // Fallback: scan entire pbis folder
+    return fs.readdirSync('pbis')
+      .filter(file => file.endsWith('.md'))
+      .map(file => `pbis/${file}`);
   }
 }
 
