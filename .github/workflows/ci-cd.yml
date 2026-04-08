@@ -3,14 +3,6 @@ name: CI/CD
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
-  push:
-    branches:
-      - main
-      - stage
-
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
     paths:
       - 'pbis/**/*.md'
 
@@ -24,6 +16,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  issues: write
 
 jobs:
   run-lint:
@@ -39,17 +32,9 @@ jobs:
     needs: [run-lint, run-tests]
     uses: ./.github/workflows/deploy.yml
 
-  destroy-pr:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    uses: ./.github/workflows/destroy.yml
-
-create-pbis:
+  create-pbis:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
-
-    permissions:
-      issues: write
-      contents: read
 
     steps:
       - name: Checkout repo
@@ -67,3 +52,7 @@ create-pbis:
         run: node scripts/parseAndCreatePBIs.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  destroy-pr:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    uses: ./.github/workflows/destroy.yml
