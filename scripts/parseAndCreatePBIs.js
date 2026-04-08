@@ -16,10 +16,10 @@ const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 // -----------------------------
 function getChangedMarkdownFiles() {
   try {
-    // Try to diff against previous commit
     const output = execSync("git diff --name-only HEAD^ HEAD")
       .toString()
-      .split('\n');
+      .split('\n')
+      .filter(Boolean);
 
     return output.filter(file =>
       file.startsWith('pbis/') && file.endsWith('.md')
@@ -28,11 +28,34 @@ function getChangedMarkdownFiles() {
   } catch (err) {
     console.warn("Fallback: no previous commit, scanning all pbis/*.md");
 
-    // Fallback: scan entire pbis folder
     return fs.readdirSync('pbis')
       .filter(file => file.endsWith('.md'))
       .map(file => `pbis/${file}`);
   }
+}
+
+// -----------------------------
+// Extract Field Helper
+// -----------------------------
+function extractField(block, fieldName) {
+  const regex = new RegExp(`${fieldName}:\\s*(.*)`);
+  const match = block.match(regex);
+  return match ? match[1].trim() : '';
+}
+
+// -----------------------------
+// Priority → Suffix
+// -----------------------------
+function getPrioritySuffix(priority) {
+  if (!priority) return '';
+
+  const p = priority.toLowerCase();
+
+  if (p === 'high') return 'H';
+  if (p === 'medium') return 'M';
+  if (p === 'low') return 'L';
+
+  return '';
 }
 
 // -----------------------------
@@ -44,6 +67,8 @@ function parsePBIs(content) {
   return blocks.map(block => {
     const priorityMatch = block.match(/(High|Medium|Low)/);
     const priority = priorityMatch ? priorityMatch[1] : '';
+
+    const title = extractField(block, "Title");
 
     const userStoryMatch = block.match(/\*\*User Story:\*\*\s*([\s\S]*?)\n\n/);
     const user_story = userStoryMatch ? userStoryMatch[1].trim() : '';
@@ -58,15 +83,16 @@ function parsePBIs(content) {
       : [];
 
     return {
+      title,
       priority,
       user_story,
       acceptance_criteria
     };
-  }).filter(pbi => pbi.user_story); // remove empty entries
+  }).filter(pbi => pbi.title); // ensure title exists
 }
 
 // -----------------------------
-// Format Issue Body (matches YAML template)
+// Format Issue Body
 // -----------------------------
 function formatToTemplate(pbi) {
   return `### pbi
@@ -82,7 +108,7 @@ ${pbi.acceptance_criteria.map(c => `- ${c}`).join('\n')}
 }
 
 // -----------------------------
-// Get Existing Issues (for duplicate prevention)
+// Get Existing Issues
 // -----------------------------
 async function getExistingIssues() {
   const issues = await octokit.issues.listForRepo({
@@ -102,9 +128,20 @@ async function createIssues(pbis) {
   const existingTitles = await getExistingIssues();
 
   for (const pbi of pbis) {
-    const title = pbi.user_story.split('\n')[0].slice(0, 80);
+    const suffix = getPrioritySuffix(pbi.priority);
+    const title = suffix ? `${pbi.title} - ${suffix}` : pbi.title;
 
-    if (existingTitles.includes(title)) {
+    if (!title) {
+      console.log("Skipping PBI with no title.");
+      continue;
+    }
+
+    // Improved duplicate check (case-insensitive)
+    const exists = existingTitles.some(existing =>
+      existing.trim().toLowerCase() === title.trim().toLowerCase()
+    );
+
+    if (exists) {
       console.log(`Skipping duplicate: ${title}`);
       continue;
     }
