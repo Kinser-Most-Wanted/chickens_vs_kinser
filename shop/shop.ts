@@ -1,6 +1,5 @@
-// Chickens vs Kinser - Shop System (PvZ-style drag & drop)
-// This is a simple standalone TypeScript implementation using DOM APIs
-// You can plug this into your game and expand as needed
+// Chickens vs Kinser - Shop UI ONLY (No drag/drop yet)
+// Focus: display currency + shop chickens (PvZ-style bar)
 
 // =========================
 // TYPES
@@ -10,19 +9,19 @@ type Chicken = {
   id: string;
   name: string;
   cost: number;
-  image: string; // path to chicken image
+  image: string;
 };
 
 // =========================
 // GAME STATE
 // =========================
 
-let exceeds: number = 100; // starting currency
+let exceeds: number = 100;
 
 const chickens: Chicken[] = [
-  { id: "basic", name: "Basic Chicken", cost: 25, image: "assets/basic.png" },
-  { id: "fast", name: "Fast Chicken", cost: 50, image: "assets/fast.png" },
-  { id: "tank", name: "Tank Chicken", cost: 75, image: "assets/tank.png" },
+  { id: "basic", name: "Basic Chicken", cost: 100, image: "assets/basicchicken.png" },
+  { id: "exceeds", name: "Exceeds Chicken", cost: 50, image: "assets/exceedschicken.png" },
+  { id: "tank", name: "Tank Chicken", cost: 75, image: "assets/placeholder.png" }, // replace with tankchicken.png later on
 ];
 
 // =========================
@@ -35,19 +34,14 @@ shop.id = "shop";
 const currencyDisplay = document.createElement("div");
 currencyDisplay.id = "currency";
 
-// Placeholder for currency image
 const currencyImg = document.createElement("img");
-currencyImg.src = "assets/exceeds.png"; // <-- YOU can replace this
+currencyImg.src = "assets/exceeds.png"; // Exceeds icon
 currencyImg.style.width = "32px";
 
-currencyDisplay.appendChild(currencyImg);
-
 const currencyText = document.createElement("span");
-currencyDisplay.appendChild(currencyText);
 
-// Game grid (where chickens are dropped)
-const grid = document.createElement("div");
-grid.id = "grid";
+currencyDisplay.appendChild(currencyImg);
+currencyDisplay.appendChild(currencyText);
 
 // =========================
 // STYLES
@@ -55,54 +49,47 @@ grid.id = "grid";
 
 const style = document.createElement("style");
 style.innerHTML = `
-  #shop {
-    display: flex;
-    gap: 10px;
-    padding: 10px;
-    background: #222;
-  }
-
-  .card {
-    width: 80px;
-    background: #444;
-    color: white;
-    text-align: center;
-    border-radius: 8px;
-    padding: 5px;
-    cursor: grab;
-  }
-
-  .card img {
-    width: 60px;
-    height: 60px;
+  body {
+    background: #1a1a1a;
+    font-family: sans-serif;
   }
 
   #currency {
-    color: white;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 10px;
+    gap: 10px;
+    color: white;
+    padding: 10px;
+    font-size: 20px;
   }
 
-  #grid {
-    width: 600px;
-    height: 400px;
-    background: green;
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 2px;
-    margin-top: 20px;
+  #shop {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    background: #2b2b2b;
+    border-top: 3px solid #444;
+    border-bottom: 3px solid #444;
   }
 
-  .cell {
-    background: rgba(0,0,0,0.2);
+  .card {
+    width: 90px;
+    background: #3a3a3a;
+    color: white;
+    text-align: center;
+    border-radius: 10px;
+    padding: 6px;
   }
 
-  .placed {
-    width: 100%;
-    height: 100%;
+  .card img {
+    width: 70px;
+    height: 70px;
+  }
+
+  .cost {
+    margin-top: 4px;
+    font-weight: bold;
+    color: #ffd700;
   }
 `;
 
@@ -119,7 +106,6 @@ function updateCurrency() {
 function createChickenCard(chicken: Chicken) {
   const card = document.createElement("div");
   card.className = "card";
-  card.draggable = true;
 
   const img = document.createElement("img");
   img.src = chicken.image;
@@ -128,58 +114,14 @@ function createChickenCard(chicken: Chicken) {
   name.textContent = chicken.name;
 
   const cost = document.createElement("div");
+  cost.className = "cost";
   cost.textContent = `${chicken.cost}`;
 
   card.appendChild(img);
   card.appendChild(name);
   card.appendChild(cost);
 
-  // Drag logic
-  card.addEventListener("dragstart", (e) => {
-    e.dataTransfer?.setData("chickenId", chicken.id);
-  });
-
   return card;
-}
-
-function createGrid() {
-  for (let i = 0; i < 24; i++) {
-    const cell = document.createElement("div");
-    cell.className = "cell";
-
-    cell.addEventListener("dragover", (e) => {
-      e.preventDefault();
-    });
-
-    cell.addEventListener("drop", (e) => {
-      e.preventDefault();
-
-      const id = e.dataTransfer?.getData("chickenId");
-      const chicken = chickens.find(c => c.id === id);
-
-      if (!chicken) return;
-
-      // Check cost
-      if (exceeds < chicken.cost) {
-        alert("Not enough Exceeds!");
-        return;
-      }
-
-      // Prevent placing twice in same cell
-      if (cell.hasChildNodes()) return;
-
-      exceeds -= chicken.cost;
-      updateCurrency();
-
-      const placed = document.createElement("img");
-      placed.src = chicken.image;
-      placed.className = "placed";
-
-      cell.appendChild(placed);
-    });
-
-    grid.appendChild(cell);
-  }
 }
 
 function initShop() {
@@ -195,16 +137,14 @@ function initShop() {
 
 updateCurrency();
 initShop();
-createGrid();
 
 document.body.appendChild(currencyDisplay);
 document.body.appendChild(shop);
-document.body.appendChild(grid);
 
 // =========================
-// NOTES FOR YOU
+// NOTES
 // =========================
-// - Replace "assets/exceeds.png" with your currency icon
-// - Replace chicken image paths with your sprites
-// - Hook this into your actual game loop later
-// - You can expand with cooldowns, greying out cards, etc.
+// - No drag/drop yet (handled by another teammate)
+// - This is purely visual + data structure
+// - Later you can add click/selection or drag logic
+// - Replace image paths with your assets
