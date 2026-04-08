@@ -62,7 +62,8 @@ function getPrioritySuffix(priority) {
 // Parse PBIs from Markdown
 // -----------------------------
 function parsePBIs(content) {
-  const blocks = content.split('### **Priority:').slice(1);
+  // ✅ FIXED: split based on actual format
+  const blocks = content.split(/\n\s*Priority:/).slice(1);
 
   return blocks.map(block => {
     const priorityMatch = block.match(/(High|Medium|Low)/);
@@ -70,16 +71,16 @@ function parsePBIs(content) {
 
     const title = extractField(block, "Title");
 
-    const userStoryMatch = block.match(/\*\*User Story:\*\*\s*([\s\S]*?)\n\n/);
+    const userStoryMatch = block.match(/User Story:\s*([\s\S]*?)\n\s*\n/);
     const user_story = userStoryMatch ? userStoryMatch[1].trim() : '';
 
-    const acceptanceMatch = block.match(/\*\*Acceptance Criteria:\*\*\s*([\s\S]*?)(---|$)/);
+    const acceptanceMatch = block.match(/Acceptance Criteria:\s*([\s\S]*?)(---|$)/);
 
     const acceptance_criteria = acceptanceMatch
       ? acceptanceMatch[1]
           .split('\n')
-          .filter(line => line.trim().startsWith('*'))
-          .map(line => line.replace('*', '').trim())
+          .filter(line => line.trim().startsWith('-'))
+          .map(line => line.replace('-', '').trim())
       : [];
 
     return {
@@ -88,7 +89,7 @@ function parsePBIs(content) {
       user_story,
       acceptance_criteria
     };
-  }).filter(pbi => pbi.title); // ensure title exists
+  }).filter(pbi => pbi.title);
 }
 
 // -----------------------------
@@ -129,14 +130,18 @@ async function createIssues(pbis) {
 
   for (const pbi of pbis) {
     const suffix = getPrioritySuffix(pbi.priority);
-    const title = suffix ? `${pbi.title} - ${suffix}` : pbi.title;
+
+    // ✅ FIXED: prevent duplicate suffix
+    const hasSuffix = / - [HML]$/i.test(pbi.title);
+    const title = hasSuffix
+      ? pbi.title
+      : (suffix ? `${pbi.title} - ${suffix}` : pbi.title);
 
     if (!title) {
       console.log("Skipping PBI with no title.");
       continue;
     }
 
-    // Improved duplicate check (case-insensitive)
     const exists = existingTitles.some(existing =>
       existing.trim().toLowerCase() === title.trim().toLowerCase()
     );
