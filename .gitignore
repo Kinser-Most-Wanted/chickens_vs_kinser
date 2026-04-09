@@ -4,3 +4,4 @@ playwright-report/
 
 .DS_Store
 .env
+src/js
