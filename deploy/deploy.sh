@@ -9,8 +9,9 @@ fi
 STACK_NAME="$1"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$SCRIPT_DIR/.."
 TEMPLATE_FILE="$SCRIPT_DIR/deploy.yml"
-SITE_DIR="${2:-$SCRIPT_DIR/../src}"
+SITE_DIR="${2:-$PROJECT_ROOT/src}"
 
 if [ ! -f "$TEMPLATE_FILE" ]; then
   echo "Template file not found: $TEMPLATE_FILE"
@@ -21,6 +22,12 @@ if [ ! -d "$SITE_DIR" ]; then
   echo "Site directory not found: $SITE_DIR"
   exit 1
 fi
+
+echo "Building TypeScript output"
+(
+  cd "$PROJECT_ROOT"
+  pnpm build
+)
 
 echo "Deploying stack: $STACK_NAME"
 echo "Using template: $TEMPLATE_FILE"
@@ -65,4 +72,5 @@ aws cloudfront create-invalidation \
   --paths "/*"
 
 echo "Deploy complete"
+echo "Site URL: $SITE_URL"cho "Deploy complete"
 echo "Site URL: $SITE_URL"
