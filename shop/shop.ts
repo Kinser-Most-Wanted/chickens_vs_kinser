@@ -22,7 +22,7 @@ let exceeds: number = 100;
 const chickens: Chicken[] = [
   { id: "basic", name: "Basic Chicken", cost: 100, image: "assets/basicchicken.png" },
   { id: "exceeds", name: "Exceeds Chicken", cost: 50, image: "assets/exceedschicken.png" },
-  { id: "tank", name: "Tank Chicken", cost: 75, image: "assets/placeholder.png" },
+  { id: "tank", name: "Tank Chicken", cost: 75, image: "assets/tankchicken.png" },
 ];
 
 // =========================
