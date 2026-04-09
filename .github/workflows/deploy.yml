@@ -36,4 +36,12 @@ jobs:
           aws-region: us-east-1
           role-to-assume: ${{ vars.DEPLOY_ROLE }}
 
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
       - run: ./deploy/deploy.sh "${{ steps.stack.outputs.stack_name }}"
