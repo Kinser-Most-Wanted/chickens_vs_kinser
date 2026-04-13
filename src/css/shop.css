@@ -1,0 +1,76 @@
+/* =========================
+   SHOP STYLES
+========================= */
+
+body {
+  margin: 0;
+  background: #1a1a1a;
+  font-family: sans-serif;
+}
+
+#top-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px;
+  background: #3b2f1c; /* PvZ dirt-ish tone */
+  border-bottom: 4px solid #2a1f10;
+}
+
+#currency {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff8c6;
+  font-size: 22px;
+  background: #5a3d1e;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 2px solid #2a1f10;
+}
+
+#shop {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: #6b4f2a;
+  border-radius: 10px;
+  border: 3px solid #2a1f10;
+}
+
+.card {
+  width: 80px;
+  height: 100px;
+  background: #d2b48c;
+  border-radius: 6px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.card img {
+  width: 60px;
+  height: 60px;
+}
+
+.cost {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  background: black;
+  color: #ffd700;
+  font-size: 14px;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.name {
+  font-size: 11px;
+  color: #222;
+  margin-top: 2px;
+  text-align: center;
+  font-weight: bold;
+}
