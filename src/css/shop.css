@@ -11,13 +11,13 @@
 }
 
 /* =========================
-   TOP BAR (PvZ SHOP BAR)
+   TOP BAR (CENTERED PvZ STYLE)
 ========================= */
 
 #top-bar {
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: center;
 
   padding: 10px;
 
@@ -26,7 +26,7 @@
   left: 0;
   width: 100%;
 
-  background: #3b2f1c; /* PvZ dirt tone */
+  background: #3b2f1c;
   border-bottom: 4px solid #2a1f10;
 
   box-sizing: border-box;
@@ -49,21 +49,38 @@
 
   border-radius: 8px;
   border: 2px solid #2a1f10;
+
+  margin-right: 20px; /* separates from shop */
 }
 
 /* =========================
-   SHOP CONTAINER (CARDS)
+   SHOP WRAPPER (CENTER CORE)
+========================= */
+
+#shop-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================
+   SHOP CONTAINER (DYNAMIC ROW)
 ========================= */
 
 #shop {
   display: flex;
-  gap: 8px;
+  flex-direction: row;
+  gap: 10px;
 
   padding: 6px;
 
   background: #6b4f2a;
   border-radius: 10px;
   border: 3px solid #2a1f10;
+
+  flex-wrap: nowrap;
+
+  max-width: fit-content;
 }
 
 /* =========================
@@ -88,6 +105,12 @@
 
   cursor: pointer;
   user-select: none;
+
+  transition: transform 0.15s ease;
+}
+
+.card:hover {
+  transform: scale(1.05);
 }
 
 .card img {
