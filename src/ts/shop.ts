@@ -16,9 +16,9 @@ export type Chicken = {
 // !!! ADD MORE CHICKENS HERE !!! (Make sure to add unique IDs and valid image paths)
 
 const chickens: Chicken[] = [
-  { id: "basic", name: "Basic Chicken", cost: 100, image: "assets/basicchicken.png" },
-  { id: "exceeds", name: "Exceeds Chicken", cost: 50, image: "assets/exceedschicken.png" },
-  { id: "tank", name: "Tank Chicken", cost: 75, image: "assets/tankchicken.png" },
+  { id: "basic", name: "Basic Chicken", cost: 100, image: "./assets/basicchicken.png" },
+  { id: "exceeds", name: "Exceeds Chicken", cost: 50, image: "./assets/exceedschicken.png" },
+  { id: "tank", name: "Tank Chicken", cost: 75, image: "./assets/tankchicken.png" },
 ];
 
 // =========================
