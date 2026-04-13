@@ -34,33 +34,42 @@ export class Shop {
     this.currency = initialCurrency;
   }
 
-  init(): void {
-    const topBar = document.createElement("div");
-    topBar.id = "top-bar";
+init(): void {
+  const topBar = document.createElement("div");
+  topBar.id = "top-bar";
 
-    const currencyDisplay = document.createElement("div");
-    currencyDisplay.id = "currency";
+  const currencyDisplay = document.createElement("div");
+  currencyDisplay.id = "currency";
 
-    const currencyImg = document.createElement("img");
-    currencyImg.src = "assets/exceeds.png";
-    currencyImg.style.width = "40px";
+  const currencyImg = document.createElement("img");
+  currencyImg.src = "assets/exceeds.png";
+  currencyImg.style.width = "40px";
 
-    this.currencyText = document.createElement("span");
+  this.currencyText = document.createElement("span");
 
-    currencyDisplay.appendChild(currencyImg);
-    currencyDisplay.appendChild(this.currencyText);
+  currencyDisplay.appendChild(currencyImg);
+  currencyDisplay.appendChild(this.currencyText);
 
-    this.shopContainer = document.createElement("div");
-    this.shopContainer.id = "shop";
+  // =========================
+  // SHOP WRAPPER
+  // =========================
+  const shopWrapper = document.createElement("div");
+  shopWrapper.id = "shop-wrapper";
 
-    topBar.appendChild(currencyDisplay);
-    topBar.appendChild(this.shopContainer);
+  this.shopContainer = document.createElement("div");
+  this.shopContainer.id = "shop";
 
-    document.body.appendChild(topBar);
+  shopWrapper.appendChild(this.shopContainer);
 
-    this.updateCurrency();
-    this.renderShop();
-  }
+  topBar.appendChild(currencyDisplay);
+  topBar.appendChild(shopWrapper);
+
+  const uiLayer = document.getElementById("uiLayer");
+  uiLayer?.appendChild(topBar);
+
+  this.updateCurrency();
+  this.renderShop();
+}
 
   private updateCurrency(): void {
     this.currencyText.textContent = `${this.currency}`;
