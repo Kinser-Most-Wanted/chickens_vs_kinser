@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
     "lint": "eslint \"src/**/*.ts\"",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
