@@ -1,17 +1,14 @@
 import type { GameState } from "./types.js";
-
-export function createInitialGameState(): GameState {
-  return {
-    lastFrameTime: 0,
-    frameCount: 0,
 import { GridLanes } from "./GridLanesCLass.js";
-import type { GameState } from "./types.js";
 
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
   return {
     lastFrameTime: 0,
     frameCount: 0,
-    grid: new GridLanes(1, 9, { width: canvas.width, height: canvas.height }),
+    grid: new GridLanes(1, 9, {
+      width: canvas.width,
+      height: canvas.height,
+    }),
     units: [],
   };
 }
@@ -45,11 +42,7 @@ export function renderFrame(
 }
 
 /**
- * Acts as the logic gate for adding entities, ensuring we don't place units out of bounds or stack them on occupied cells.
- * @param pixelX - Raw horizontal canvas pixel coordinate.
- * @param pixelY - Raw vertical canvas pixel coordinate.
- * @param gameState - The active state to modify.
- * @returns True if the unit was placed, false if placement was blocked.
+ * Attempts to place a unit on the grid.
  */
 export function attemptUnitPlacement(
   pixelX: number,
@@ -65,23 +58,21 @@ export function attemptUnitPlacement(
     (unit) => unit.lane === coords.lane && unit.cell === coords.cell,
   );
 
-  if (!isOccupied) {
-    gameState.units.push({
-      lane: coords.lane,
-      cell: coords.cell,
-      type: "chicken",
-    });
-    return true;
-  }
+  if (isOccupied) return false;
 
-  return false;
+  gameState.units.push({
+    lane: coords.lane,
+    cell: coords.cell,
+    type: "chicken",
+  });
+
+  return true;
 }
 
 export function startGameLoop(
   canvas: HTMLCanvasElement,
   renderingContext: CanvasRenderingContext2D,
 ): void {
-  const gameState = createInitialGameState();
   const gameState = createInitialGameState(canvas);
 
   function runFrame(currentTime: number): void {
