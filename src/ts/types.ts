@@ -1,3 +1,5 @@
+import { GridLanes } from "./GridLanesCLass.js";
+
 export type SupportedCanvasSize = "small" | "large";
 
 export interface CanvasDimensions {
@@ -8,4 +10,22 @@ export interface CanvasDimensions {
 export interface GameState {
   lastFrameTime: number;
   frameCount: number;
+export interface GridConfig {
+  lanes: number;
+  cells: number;
+}
+
+export interface Unit {
+  lane: number;
+  cell: number;
+  type: "chicken"; // Example type, we'll expand this later
+}
+
+export interface GameState {
+  lastFrameTime: number;
+  frameCount: number;
+  grid?: GridLanes;
+  units: Unit[];
+  mouseX?: number;
+  mouseY?: number;
 }
