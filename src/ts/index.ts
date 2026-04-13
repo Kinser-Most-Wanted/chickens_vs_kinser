@@ -1,5 +1,6 @@
 import { applyCanvasDimensions, DEFAULT_CANVAS_SIZE } from "./canvas.js";
 import { startGameLoop } from "./gameLoop.js";
+import { Shop } from "./shop.js";
 
 function initGame(): void {
   const canvas = document.getElementById(
@@ -19,6 +20,10 @@ function initGame(): void {
     console.error("Failed to get 2D rendering context.");
     return;
   }
+
+  // SHOP Creation
+  const shop = new Shop(100);
+  shop.init();
 
   startGameLoop(canvas, renderingContext);
 }
