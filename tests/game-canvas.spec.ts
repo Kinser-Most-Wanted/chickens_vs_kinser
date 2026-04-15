@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("renders the game canvas with a supported size and no startup errors", async ({
+test("start game opens the game page and renders the landscape canvas with no startup errors", async ({
   page,
 }) => {
   const consoleErrors: string[] = [];
@@ -17,8 +17,11 @@ test("renders the game canvas with a supported size and no startup errors", asyn
   });
 
   await page.goto("/");
+  await page.getByRole("button", { name: "Start Game" }).click();
 
-  const canvas = page.locator("#gameCanvas");
+  await expect(page).toHaveURL(/game\.html$/);
+
+  const canvas = page.locator("#game-canvas");
   await expect(canvas).toBeVisible();
 
   const canvasSize = await canvas.evaluate((element) => {
@@ -30,18 +33,7 @@ test("renders the game canvas with a supported size and no startup errors", asyn
     };
   });
 
-  const supportedSizes = [
-    { width: 400, height: 400 },
-    { width: 800, height: 400 },
-  ];
-
-  const isSupportedSize = supportedSizes.some(
-    (supportedSize) =>
-      supportedSize.width === canvasSize.width &&
-      supportedSize.height === canvasSize.height,
-  );
-
-  expect(isSupportedSize).toBe(true);
+  expect(canvasSize).toEqual({ width: 800, height: 400 });
   expect(consoleErrors).toEqual([]);
   expect(pageErrors).toEqual([]);
 });

@@ -1,6 +1,6 @@
 import { GridLanes } from "./GridLanesCLass.js";
 
-export type SupportedCanvasSize = "small" | "large";
+export type SupportedCanvasSize = "small" | "large" | "portrait";
 
 export interface CanvasDimensions {
   width: number;

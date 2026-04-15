@@ -9,6 +9,10 @@ const CANVAS_DIMENSIONS: Record<SupportedCanvasSize, CanvasDimensions> = {
     width: 800,
     height: 400,
   },
+  portrait: {
+    width: 400,
+    height: 800,
+  },
 };
 
 export const DEFAULT_CANVAS_SIZE: SupportedCanvasSize = "large";

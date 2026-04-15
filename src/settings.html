@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Chickens vs Kinser settings" />
+  <title>Chickens vs Kinser - Settings</title>
+  <link rel="stylesheet" href="./css/index.css" />
+</head>
+<body>
+  <main class="page settings-page">
+    <section class="app-shell menu-card" aria-label="Settings">
+      <div class="menu-content settings-content">
+        <div class="settings-scroll-area">
+          <p class="eyebrow">Options</p>
+          <h1>Settings</h1>
+          <p class="subtitle">Adjust audio, keybinds, and the background image.</p>
+
+          <form id="settings-form" class="settings-layout">
+            <section class="settings-panel" aria-labelledby="audio-settings-heading">
+              <h2 id="audio-settings-heading">Audio</h2>
+
+              <label class="setting-row" for="music-toggle">
+                <span>Music</span>
+                <input id="music-toggle" name="musicEnabled" type="checkbox" />
+              </label>
+
+              <label class="setting-row" for="sfx-toggle">
+                <span>Sound Effects</span>
+                <input id="sfx-toggle" name="soundEffectsEnabled" type="checkbox" />
+              </label>
+
+              <label class="setting-stack" for="chicken-volume">
+                <span>Chicken Volume</span>
+                <div class="range-row">
+                  <input id="chicken-volume" name="chickenVolume" type="range" min="0" max="100" value="80" />
+                  <output for="chicken-volume" id="chicken-volume-value">80%</output>
+                </div>
+              </label>
+
+              <label class="setting-stack" for="robot-volume">
+                <span>Robot Volume</span>
+                <div class="range-row">
+                  <input id="robot-volume" name="robotVolume" type="range" min="0" max="100" value="70" />
+                  <output for="robot-volume" id="robot-volume-value">70%</output>
+                </div>
+              </label>
+            </section>
+
+            <section class="settings-panel" aria-labelledby="gameplay-settings-heading">
+              <h2 id="gameplay-settings-heading">Gameplay</h2>
+
+              <label class="setting-stack" for="unit-place-key">
+                <span>Spacebar for Unit Placing</span>
+                <input id="unit-place-key" name="unitPlaceKey" type="text" value="Space" />
+              </label>
+
+              <label class="setting-stack" for="fast-forward-key">
+                <span>Fastforward Keybind</span>
+                <input id="fast-forward-key" name="fastForwardKey" type="text" maxlength="12" value="F" />
+              </label>
+
+              <label class="setting-stack" for="background-image">
+                <span>Background Image</span>
+                <input id="background-image" name="backgroundImage" type="text" placeholder="backgrounds/farm.png" />
+              </label>
+            </section>
+          </form>
+        </div>
+
+        <div class="settings-actions">
+          <button id="save-settings-btn" class="menu-button primary" type="button">Save Settings</button>
+          <a class="menu-button secondary" href="./index.html">Back to Main Menu</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./js/settings.js"></script>
+</body>
+</html>
