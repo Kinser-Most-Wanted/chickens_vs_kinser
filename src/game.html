@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Chickens vs Kinser game" />
+  <title>Chickens vs Kinser - Game</title>
+
+  <link rel="stylesheet" href="./css/index.css" />
+  <link rel="stylesheet" href="./css/shop.css" />
+</head>
+<body>
+  <main class="page game-page">
+    <section
+      class="app-shell game-shell game-container"
+      id="gameContainer"
+      aria-label="Game screen"
+    >
+      <header class="top-bar">
+        <h1>Start Game</h1>
+        <a class="menu-link" href="./index.html">Main Menu</a>
+      </header>
+
+      <!-- UI LAYER (PvZ-style overlay system) -->
+      <div id="uiLayer"></div>
+
+      <!-- GAME CANVAS (grid + gameplay rendering) -->
+      <canvas id="game-canvas" aria-label="Game canvas"></canvas>
+    </section>
+  </main>
+
+  <script type="module" src="./js/index.js"></script>
+</body>
+</html>

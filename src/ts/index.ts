@@ -4,7 +4,7 @@ import { Shop } from "./shop.js";
 
 function initGame(): void {
   const canvas = document.getElementById(
-    "gameCanvas",
+    "game-canvas",
   ) as HTMLCanvasElement | null;
 
   if (!canvas) {
