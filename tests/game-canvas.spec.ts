@@ -19,7 +19,7 @@ test("start game opens the game page and renders the landscape canvas with no st
   await page.goto("/");
   await page.getByRole("button", { name: "Start Game" }).click();
 
-  await expect(page).toHaveURL(/game\.html$/);
+  await expect(page).toHaveURL(/game$/);
 
   const canvas = page.locator("#game-canvas");
   await expect(canvas).toBeVisible();
