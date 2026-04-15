@@ -5,11 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Chickens vs Kinser game" />
   <title>Chickens vs Kinser</title>
+
   <link rel="stylesheet" href="./css/index.css" />
+  <link rel="stylesheet" href="./css/shop.css" />
 </head>
+
 <body>
-  <main class="game-container">
+  <main class="game-container" id="gameContainer">
+
+    <!-- UI LAYER (PvZ-style overlay system) -->
+    <div id="uiLayer"></div>
+
+    <!-- GAME CANVAS (grid + gameplay rendering) -->
     <canvas id="gameCanvas" aria-label="Game canvas"></canvas>
+
   </main>
 
   <script type="module" src="./js/index.js"></script>
