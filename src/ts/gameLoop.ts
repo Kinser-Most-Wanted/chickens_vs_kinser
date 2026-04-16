@@ -2,6 +2,18 @@ import { GridLanes } from "./GridLanesCLass.js";
 import type { GameState } from "./types.js";
 import { getEventCoordinates } from "./canvas.js";
 
+const spriteCache: Record<string, HTMLImageElement> = {};
+
+function getSprite(src: string): HTMLImageElement {
+  if (!spriteCache[src]) {
+    const img = new Image();
+    img.src = src;
+    spriteCache[src] = img;
+  }
+
+  return spriteCache[src];
+}
+
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
   return {
     lastFrameTime: 0,
