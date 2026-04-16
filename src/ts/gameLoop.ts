@@ -26,6 +26,7 @@ export function renderFrame(
 ): void {
   renderingContext.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Background
   renderingContext.fillStyle = "#111111";
   renderingContext.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -36,8 +37,16 @@ export function renderFrame(
   // Debug info positioned at the bottom to avoid being covered by the shop
   renderingContext.fillStyle = "#ffffff";
   renderingContext.font = "24px Arial";
-  renderingContext.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 20, canvas.height - 100);
-  renderingContext.fillText(`Frame: ${gameState.frameCount}`, 20, canvas.height - 60);
+  renderingContext.fillText(
+    `Canvas: ${canvas.width}x${canvas.height}`,
+    20,
+    canvas.height - 100,
+  );
+  renderingContext.fillText(
+    `Frame: ${gameState.frameCount}`,
+    20,
+    canvas.height - 60,
+  );
 
   if (gameState.coordX !== undefined && gameState.coordY !== undefined) {
     renderingContext.fillText(
@@ -49,11 +58,8 @@ export function renderFrame(
 }
 
 /**
- * Acts as the logic gate for adding entities, ensuring we don't place units out of bounds or stack them on occupied cells.
- * @param pixelX - Raw horizontal canvas pixel coordinate.
- * @param pixelY - Raw vertical canvas pixel coordinate.
- * @param gameState - The active state to modify.
- * @returns True if the unit was placed, false if placement was blocked.
+ * Acts as the logic gate for adding entities,
+ * ensuring we don't place units out of bounds or stack them on occupied cells.
  */
 export function attemptUnitPlacement(
   pixelX: number,
@@ -69,16 +75,15 @@ export function attemptUnitPlacement(
     (unit) => unit.lane === coords.lane && unit.cell === coords.cell,
   );
 
-  if (!isOccupied) {
-    gameState.units.push({
-      lane: coords.lane,
-      cell: coords.cell,
-      type: "chicken",
-    });
-    return true;
-  }
+  if (isOccupied) return false;
 
-  return false;
+  gameState.units.push({
+    lane: coords.lane,
+    cell: coords.cell,
+    type: "chicken",
+  });
+
+  return true;
 }
 
 export function startGameLoop(
@@ -93,7 +98,9 @@ export function startGameLoop(
     gameState.coordX = x;
     gameState.coordY = y;
   };
+
   canvas.addEventListener("mousemove", updateMousePosition);
+
   canvas.addEventListener("mousedown", (event) => {
     updateMousePosition(event);
     attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
@@ -109,6 +116,7 @@ export function startGameLoop(
     },
     { passive: false },
   );
+
   canvas.addEventListener(
     "touchmove",
     (event) => {
