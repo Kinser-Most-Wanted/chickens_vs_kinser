@@ -125,7 +125,6 @@ export function startGameLoop(
     },
     { passive: false },
   );
-
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
     renderFrame(canvas, renderingContext, gameState);
