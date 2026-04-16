@@ -97,9 +97,9 @@ export class GridLanes {
   public getGridCoordinates(pixelX: number, pixelY: number): { lane: number; cell: number } | null {
     if (
       pixelX < this.xOffset || 
-      pixelX > this.xOffset + this.cells * this.cellWidth ||
+      pixelX >= this.xOffset + this.cells * this.cellWidth ||
       pixelY < this.yOffset || 
-      pixelY > this.yOffset + this.lanes * this.cellHeight
+      pixelY >= this.yOffset + this.lanes * this.cellHeight
     ) {
       return null;
     }
