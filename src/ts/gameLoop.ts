@@ -27,7 +27,7 @@ export function renderFrame(
 ): void {
   renderingContext.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Background
+  // background
   renderingContext.fillStyle = "#111111";
   renderingContext.fillRect(0, 0, canvas.width, canvas.height);
 
