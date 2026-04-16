@@ -1,59 +1,8 @@
-#shop-wrapper {
-  pointer-events: auto;
-}
 
-#shop {
-  display: flex;
-  gap: 12px;
-  padding: 8px;
-  pointer-events: auto;
-}
+/* =========================
+   UI LAYER SAFETY
+   ========================= */
 
-/* CARD BASE STYLE */
-.card {
-  width: 90px;
-  height: 110px;
-  background: #1e293b;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px;
-  cursor: pointer;
-
-  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
-}
-
-/* HOVER EFFECT (THIS WAS MISSING) */
-.card:hover {
-  transform: translateY(-4px) scale(1.05);
-  filter: brightness(1.15);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
-}
-
-/* IMAGE */
-.card img {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-}
-
-/* NAME */
-.card .name {
-  font-size: 0.75rem;
-  text-align: center;
-  color: #e2e8f0;
-}
-
-/* COST */
-.card .cost {
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: #fde68a;
-}
-
-/* UI LAYER SAFETY (ONLY IF SHOP IS INSIDE IT) */
 #uiLayer {
   position: absolute;
   inset: 0;
@@ -61,9 +10,65 @@
   pointer-events: none;
 }
 
-/* re-enable interaction where needed */
+/* =========================
+   SHOP INTERACTION BASE
+   ========================= */
+
 #shop-wrapper,
-#shop,
-.card {
+#shop {
   pointer-events: auto;
+}
+
+/* =========================
+   SHOP LAYOUT (minimal, non-breaking)
+   - keeps your existing structure intact
+   ========================= */
+
+#shop {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* =========================
+   CHICKEN CARD BASE STYLE
+   (DO NOT OVERRIDE YOUR VISUAL DESIGN)
+   ========================= */
+
+.card {
+  cursor: pointer;
+
+  /* IMPORTANT: only animation layer added */
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+/* =========================
+   HOVER EFFECT (RESTORED PvZ FEEL)
+   ========================= */
+
+.card:hover {
+  transform: translateY(-4px) scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* click feedback (useful for drag start later) */
+.card:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   IMAGE SAFETY (prevents layout break)
+   ========================= */
+
+.card img {
+  display: block;
+}
+
+/* =========================
+   TEXT SAFETY (won’t override your styles)
+   ========================= */
+
+.card .name,
+.card .cost {
+  pointer-events: none;
 }
