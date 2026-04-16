@@ -225,6 +225,10 @@ canvas {
   display: block;
   background: #000000;
   image-rendering: pixelated;
+
+  /* ADD THIS */
+  width: 800px;
+  height: 400px;
 }
 
 .settings-list {
@@ -299,28 +303,11 @@ canvas {
     padding: 12px;
   }
 
-  .app-shell,
-.game-container {
-  position: relative;
-  width: 800px;
-  height: 400px;
-  margin: 20px auto;
-  overflow: hidden;
-  background: #0f0f0f;
-  border: 3px solid #2a1f10;
-  flex: 0 0 auto;
-}
-
   .settings-layout {
     grid-template-columns: 1fr;
   }
 
   .settings-actions {
     flex-direction: column;
-  }
-
-  canvas {
-  width: auto !important;
-  height: auto !important;
   }
 }
