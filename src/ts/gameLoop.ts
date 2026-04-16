@@ -70,6 +70,7 @@ export function renderFrame(
     );
   }
 }
+
 /**
  * Acts as the logic gate for adding entities,
  * ensuring we don't place units out of bounds or stack them on occupied cells.
@@ -93,7 +94,7 @@ export function attemptUnitPlacement(
   gameState.units.push({
     lane: coords.lane,
     cell: coords.cell,
-    type: "chicken",
+    type: gameState.draggingUnitType ?? "chicken",
   });
 
   return true;
