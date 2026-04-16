@@ -26,6 +26,19 @@ export function renderFrame(
 ): void {
   renderingContext.clearRect(0, 0, canvas.width, canvas.height);
 
+  const unitImg = new Image();
+
+  // map unit type → image (simple version for now)
+  switch (unit.type) {
+    case "chicken":
+      unitImg.src = "./assets/basicchicken.png";
+      break;
+    default:
+      unitImg.src = "./assets/basicchicken.png";
+      break;
+  }
+
+  renderingContext.drawImage(unitImg, pos.pixelX - 30, pos.pixelY - 30, 60, 60);
   // background
   renderingContext.fillStyle = "#111111";
   renderingContext.fillRect(0, 0, canvas.width, canvas.height);
