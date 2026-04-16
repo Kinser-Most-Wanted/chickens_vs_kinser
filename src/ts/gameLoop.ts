@@ -40,6 +40,7 @@ export function renderFrame(
 
   renderingContext.drawImage(unitImg, pos.pixelX - 30, pos.pixelY - 30, 60, 60);
   // background
+  // =========================
   renderingContext.fillStyle = "#111111";
   renderingContext.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -69,7 +70,6 @@ export function renderFrame(
     );
   }
 }
-
 /**
  * Acts as the logic gate for adding entities,
  * ensuring we don't place units out of bounds or stack them on occupied cells.
