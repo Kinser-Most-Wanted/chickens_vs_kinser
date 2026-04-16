@@ -105,13 +105,14 @@ init(): void {
     card.addEventListener("mousedown", (e) => {
       e.preventDefault();
   
-      const event = new CustomEvent("start-drag", {
-        detail: {
-          type: chicken.id,
-          name: chicken.name,
-          cost: chicken.cost,
-        },
-      });
+    const event = new CustomEvent("start-drag", {
+      detail: {
+        type: chicken.id,
+        name: chicken.name,
+        cost: chicken.cost,
+        image: chicken.image,
+      },
+    });
   
       window.dispatchEvent(event);
   
