@@ -86,38 +86,44 @@ init(): void {
   private createChickenCard(chicken: Chicken): HTMLDivElement {
     const card = document.createElement("div");
     card.className = "card";
-
+  
     card.style.border = `3px solid ${this.getBorderColor(chicken.cost)}`;
-
+  
     const img = document.createElement("img");
     img.src = chicken.image;
-
+  
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = chicken.name;
-
+  
     const cost = document.createElement("div");
     cost.className = "cost";
     cost.textContent = `${chicken.cost}`;
-
-    // 🔥 CLICK HANDLER (important for future gameplay)
+  
+    /**
+     * DRAG START (PvZ-style pickup)
+     * This does NOT place the unit yet — only signals game loop
+     */
     card.addEventListener("mousedown", (e) => {
-      dragState.isDragging = true;
-      dragState.chicken = chicken;
-      dragState.offsetX = e.offsetX;
-      dragState.offsetY = e.offsetY;
-    
-      console.log(`Dragging: ${chicken.name}`);
+      e.preventDefault();
+  
+      const event = new CustomEvent("start-drag", {
+        detail: {
+          type: chicken.id,
+          name: chicken.name,
+          cost: chicken.cost,
+        },
+      });
+  
+      window.dispatchEvent(event);
+  
+      console.log(`Started dragging: ${chicken.name}`);
     });
-
-    window.addEventListener("mouseup", () => {
-      dragState.isDragging = false;
-    });
-
+  
     card.appendChild(cost);
     card.appendChild(img);
     card.appendChild(name);
-
+  
     return card;
   }
 
