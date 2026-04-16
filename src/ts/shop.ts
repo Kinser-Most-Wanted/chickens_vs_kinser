@@ -1,3 +1,5 @@
+import { dragState } from "./dragState.js";
+
 // =========================
 // TYPES
 // =========================
@@ -16,9 +18,24 @@ export type Chicken = {
 // !!! ADD MORE CHICKENS HERE !!! (Make sure to add unique IDs and valid image paths)
 
 const chickens: Chicken[] = [
-  { id: "basic", name: "Basic Chicken", cost: 100, image: "./assets/basicchicken.png" },
-  { id: "exceeds", name: "Exceeds Chicken", cost: 50, image: "./assets/exceedschicken.png" },
-  { id: "tank", name: "Tank Chicken", cost: 75, image: "./assets/tankchicken.png" },
+  {
+    id: "basic",
+    name: "Basic Chicken",
+    cost: 100,
+    image: "./assets/basicchicken.png",
+  },
+  {
+    id: "exceeds",
+    name: "Exceeds Chicken",
+    cost: 50,
+    image: "./assets/exceedschicken.png",
+  },
+  {
+    id: "tank",
+    name: "Tank Chicken",
+    cost: 75,
+    image: "./assets/tankchicken.png",
+  },
 ];
 
 // =========================
@@ -34,42 +51,42 @@ export class Shop {
     this.currency = initialCurrency;
   }
 
-init(): void {
-  const topBar = document.createElement("div");
-  topBar.id = "top-bar";
+  init(): void {
+    const topBar = document.createElement("div");
+    topBar.id = "top-bar";
 
-  const currencyDisplay = document.createElement("div");
-  currencyDisplay.id = "currency";
+    const currencyDisplay = document.createElement("div");
+    currencyDisplay.id = "currency";
 
-  const currencyImg = document.createElement("img");
-  currencyImg.src = "assets/exceeds.png";
-  currencyImg.style.width = "40px";
+    const currencyImg = document.createElement("img");
+    currencyImg.src = "assets/exceeds.png";
+    currencyImg.style.width = "40px";
 
-  this.currencyText = document.createElement("span");
+    this.currencyText = document.createElement("span");
 
-  currencyDisplay.appendChild(currencyImg);
-  currencyDisplay.appendChild(this.currencyText);
+    currencyDisplay.appendChild(currencyImg);
+    currencyDisplay.appendChild(this.currencyText);
 
-  // =========================
-  // SHOP WRAPPER
-  // =========================
-  const shopWrapper = document.createElement("div");
-  shopWrapper.id = "shop-wrapper";
+    // =========================
+    // SHOP WRAPPER
+    // =========================
+    const shopWrapper = document.createElement("div");
+    shopWrapper.id = "shop-wrapper";
 
-  this.shopContainer = document.createElement("div");
-  this.shopContainer.id = "shop";
+    this.shopContainer = document.createElement("div");
+    this.shopContainer.id = "shop";
 
-  shopWrapper.appendChild(this.shopContainer);
+    shopWrapper.appendChild(this.shopContainer);
 
-  topBar.appendChild(currencyDisplay);
-  topBar.appendChild(shopWrapper);
+    topBar.appendChild(currencyDisplay);
+    topBar.appendChild(shopWrapper);
 
-  const uiLayer = document.getElementById("uiLayer");
-  uiLayer?.appendChild(topBar);
+    const uiLayer = document.getElementById("uiLayer");
+    uiLayer?.appendChild(topBar);
 
-  this.updateCurrency();
-  this.renderShop();
-}
+    this.updateCurrency();
+    this.renderShop();
+  }
 
   private updateCurrency(): void {
     this.currencyText.textContent = `${this.currency}`;
@@ -84,45 +101,39 @@ init(): void {
   private createChickenCard(chicken: Chicken): HTMLDivElement {
     const card = document.createElement("div");
     card.className = "card";
-  
+
     card.style.border = `3px solid ${this.getBorderColor(chicken.cost)}`;
-  
+
     const img = document.createElement("img");
     img.src = chicken.image;
-  
+
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = chicken.name;
-  
+
     const cost = document.createElement("div");
     cost.className = "cost";
     cost.textContent = `${chicken.cost}`;
-  
+
     /**
      * DRAG START (PvZ-style pickup)
      * This does NOT place the unit yet — only signals game loop
      */
     card.addEventListener("mousedown", (e) => {
       e.preventDefault();
-  
-    const event = new CustomEvent("start-drag", {
-      detail: {
-        type: chicken.id,
-        name: chicken.name,
-        cost: chicken.cost,
-        image: chicken.image,
-      },
-    });
-  
-      window.dispatchEvent(event);
-  
+
+      dragState.isDragging = true;
+      dragState.chicken = chicken;
+      dragState.offsetX = 0;
+      dragState.offsetY = 0;
+
       console.log(`Started dragging: ${chicken.name}`);
     });
-  
+
     card.appendChild(cost);
     card.appendChild(img);
     card.appendChild(name);
-  
+
     return card;
   }
 
@@ -130,7 +141,7 @@ init(): void {
     chickens
       .slice()
       .sort((a, b) => a.cost - b.cost)
-      .forEach(chicken => {
+      .forEach((chicken) => {
         this.shopContainer.appendChild(this.createChickenCard(chicken));
       });
   }

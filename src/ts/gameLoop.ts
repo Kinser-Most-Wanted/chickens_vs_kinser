@@ -1,6 +1,7 @@
 import { GridLanes } from "./GridLanesCLass.js";
-import type { GameState } from "./types.js";
+import type { GameState, Unit } from "./types.js";
 import { getEventCoordinates } from "./canvas.js";
+import { dragState } from "./dragState.js";
 
 const spriteCache: Record<string, HTMLImageElement> = {};
 
@@ -12,6 +13,70 @@ function getSprite(src: string): HTMLImageElement {
   }
 
   return spriteCache[src];
+}
+
+function getUnitSpriteSrc(type: string): string {
+  switch (type) {
+    case "exceeds":
+      return "./assets/exceedschicken.png";
+    case "tank":
+      return "./assets/tankchicken.png";
+    case "basic":
+    case "chicken":
+    default:
+      return "./assets/basicchicken.png";
+  }
+}
+
+function renderUnits(
+  renderingContext: CanvasRenderingContext2D,
+  gameState: GameState,
+): void {
+  if (!gameState.grid) return;
+
+  for (const unit of gameState.units) {
+    const pos = gameState.grid.getPixelCoordinates(unit.lane, unit.cell);
+    if (!pos) continue;
+
+    const img = getSprite(getUnitSpriteSrc(unit.type));
+    renderingContext.drawImage(img, pos.pixelX - 30, pos.pixelY - 30, 60, 60);
+  }
+}
+
+function renderDragPreview(
+  renderingContext: CanvasRenderingContext2D,
+  gameState: GameState,
+): void {
+  if (
+    !dragState.isDragging ||
+    !dragState.chicken ||
+    !gameState.grid ||
+    gameState.coordX === undefined ||
+    gameState.coordY === undefined
+  ) {
+    return;
+  }
+
+  const coords = gameState.grid.getGridCoordinates(
+    gameState.coordX,
+    gameState.coordY,
+  );
+  if (!coords) return;
+
+  const pixel = gameState.grid.getPixelCoordinates(coords.lane, coords.cell);
+  const img = getSprite(dragState.chicken.image);
+
+  renderingContext.save();
+  renderingContext.globalAlpha = 0.6;
+  renderingContext.drawImage(img, pixel.pixelX - 30, pixel.pixelY - 30, 60, 60);
+  renderingContext.restore();
+}
+
+function resetDragState(): void {
+  dragState.isDragging = false;
+  dragState.chicken = null;
+  dragState.offsetX = 0;
+  dragState.offsetY = 0;
 }
 
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
@@ -38,21 +103,6 @@ export function renderFrame(
 ): void {
   renderingContext.clearRect(0, 0, canvas.width, canvas.height);
 
-  const unitImg = new Image();
-
-  // map unit type → image (simple version for now)
-  switch (unit.type) {
-    case "chicken":
-      unitImg.src = "./assets/basicchicken.png";
-      break;
-    default:
-      unitImg.src = "./assets/basicchicken.png";
-      break;
-  }
-
-  renderingContext.drawImage(unitImg, pos.pixelX - 30, pos.pixelY - 30, 60, 60);
-  // background
-  // =========================
   renderingContext.fillStyle = "#111111";
   renderingContext.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -60,7 +110,9 @@ export function renderFrame(
     gameState.grid.render(renderingContext, gameState.coordX, gameState.coordY);
   }
 
-  // Debug info positioned at the bottom to avoid being covered by the shop
+  renderUnits(renderingContext, gameState);
+  renderDragPreview(renderingContext, gameState);
+
   renderingContext.fillStyle = "#ffffff";
   renderingContext.font = "24px Arial";
   renderingContext.fillText(
@@ -83,10 +135,6 @@ export function renderFrame(
   }
 }
 
-/**
- * Acts as the logic gate for adding entities,
- * ensuring we don't place units out of bounds or stack them on occupied cells.
- */
 export function attemptUnitPlacement(
   pixelX: number,
   pixelY: number,
@@ -100,15 +148,15 @@ export function attemptUnitPlacement(
   const isOccupied = gameState.units.some(
     (unit) => unit.lane === coords.lane && unit.cell === coords.cell,
   );
-
   if (isOccupied) return false;
 
-  gameState.units.push({
+  const unit: Unit = {
     lane: coords.lane,
     cell: coords.cell,
-    type: gameState.draggingUnitType ?? "chicken",
-  });
+    type: dragState.chicken?.id ?? "chicken",
+  };
 
+  gameState.units.push(unit);
   return true;
 }
 
@@ -118,25 +166,62 @@ export function startGameLoop(
 ): void {
   const gameState = createInitialGameState(canvas);
 
-  // Mouse movement & click listeners
-  const updateMousePosition = (event: MouseEvent | TouchEvent) => {
+  const updatePointerPosition = (event: MouseEvent | TouchEvent) => {
     const { x, y } = getEventCoordinates(event, canvas);
     gameState.coordX = x;
     gameState.coordY = y;
   };
-  canvas.addEventListener("mousemove", updateMousePosition);
+
+  canvas.addEventListener("mousemove", updatePointerPosition);
 
   canvas.addEventListener("mousedown", (event) => {
-    updateMousePosition(event);
+    updatePointerPosition(event);
+
+    if (dragState.isDragging) {
+      return;
+    }
+
     attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
   });
 
-  // Touch movement listeners
+  canvas.addEventListener("mouseup", (event) => {
+    if (!dragState.isDragging || !dragState.chicken) return;
+
+    updatePointerPosition(event);
+
+    const success = attemptUnitPlacement(
+      gameState.coordX!,
+      gameState.coordY!,
+      gameState,
+    );
+
+    if (success) {
+      console.log(`Placed: ${dragState.chicken.name}`);
+      resetDragState();
+    }
+  });
+
   canvas.addEventListener(
     "touchstart",
     (event) => {
       event.preventDefault();
-      updateMousePosition(event);
+      updatePointerPosition(event);
+
+      if (dragState.isDragging && dragState.chicken) {
+        const success = attemptUnitPlacement(
+          gameState.coordX!,
+          gameState.coordY!,
+          gameState,
+        );
+
+        if (success) {
+          console.log(`Placed: ${dragState.chicken.name}`);
+          resetDragState();
+        }
+
+        return;
+      }
+
       attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
     },
     { passive: false },
@@ -146,14 +231,14 @@ export function startGameLoop(
     "touchmove",
     (event) => {
       event.preventDefault();
-      updateMousePosition(event);
+      updatePointerPosition(event);
     },
     { passive: false },
   );
+
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
     renderFrame(canvas, renderingContext, gameState);
-
     window.requestAnimationFrame(runFrame);
   }
 
