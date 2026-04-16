@@ -99,7 +99,6 @@ export function startGameLoop(
     gameState.coordX = x;
     gameState.coordY = y;
   };
-
   canvas.addEventListener("mousemove", updateMousePosition);
 
   canvas.addEventListener("mousedown", (event) => {
