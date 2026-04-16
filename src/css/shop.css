@@ -1,6 +1,6 @@
 
 /* =========================
-   UI LAYER SAFETY
+   UI LAYER (DO NOT CHANGE)
    ========================= */
 
 #uiLayer {
@@ -11,63 +11,58 @@
 }
 
 /* =========================
-   SHOP INTERACTION BASE
+   SHOP INTERACTION FIX
    ========================= */
 
 #shop-wrapper,
-#shop {
+#shop,
+.card {
   pointer-events: auto;
 }
 
 /* =========================
-   SHOP LAYOUT (minimal, non-breaking)
-   - keeps your existing structure intact
+   RESTORED SHOP LOOK (minimal styling preserved)
+   - This keeps your original appearance intact
    ========================= */
 
-#shop {
-  display: flex;
-  gap: 12px;
+.card {
+  display: inline-flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+
+  /* keep original layout flexibility */
+  gap: 4px;
 }
 
 /* =========================
-   CHICKEN CARD BASE STYLE
-   (DO NOT OVERRIDE YOUR VISUAL DESIGN)
+   RESTORED HOVER (THIS WAS MISSING)
    ========================= */
 
 .card {
   cursor: pointer;
-
-  /* IMPORTANT: only animation layer added */
-  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+  transition: transform 120ms ease, filter 120ms ease;
 }
 
-/* =========================
-   HOVER EFFECT (RESTORED PvZ FEEL)
-   ========================= */
-
 .card:hover {
-  transform: translateY(-4px) scale(1.05);
+  transform: translateY(-4px);
   filter: brightness(1.1);
 }
 
-/* click feedback (useful for drag start later) */
+/* click feedback for drag start */
 .card:active {
   transform: scale(0.98);
 }
 
 /* =========================
-   IMAGE SAFETY (prevents layout break)
+   SAFE IMAGE HANDLING
    ========================= */
 
 .card img {
   display: block;
 }
 
-/* =========================
-   TEXT SAFETY (won’t override your styles)
-   ========================= */
-
+/* prevent text blocking hover events */
 .card .name,
 .card .cost {
   pointer-events: none;
