@@ -1,6 +1,6 @@
 
 /* =========================
-   UI LAYER (DO NOT CHANGE)
+   UI LAYER (KEEP)
    ========================= */
 
 #uiLayer {
@@ -11,58 +11,100 @@
 }
 
 /* =========================
-   SHOP INTERACTION FIX
+   SHOP CONTAINERS
    ========================= */
 
-#shop-wrapper,
-#shop,
-.card {
+#shop-wrapper {
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+#shop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 12px;
+
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid #334155;
+  border-radius: 12px;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+
   pointer-events: auto;
 }
 
 /* =========================
-   RESTORED SHOP LOOK (minimal styling preserved)
-   - This keeps your original appearance intact
+   CHICKEN CARD (VISUAL RESTORE)
    ========================= */
 
 .card {
-  display: inline-flex;
+  width: 92px;
+  height: 112px;
+
+  background: #1e293b;
+  border: 2px solid #334155;
+  border-radius: 12px;
+
+  display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
 
-  /* keep original layout flexibility */
-  gap: 4px;
+  padding: 8px;
+
+  cursor: pointer;
+
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
 }
 
 /* =========================
-   RESTORED HOVER (THIS WAS MISSING)
+   HOVER (PvZ FEEL RESTORED)
    ========================= */
 
-.card {
-  cursor: pointer;
-  transition: transform 120ms ease, filter 120ms ease;
-}
-
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.05);
   filter: brightness(1.1);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
 }
 
-/* click feedback for drag start */
 .card:active {
   transform: scale(0.98);
 }
 
 /* =========================
-   SAFE IMAGE HANDLING
+   IMAGE
    ========================= */
 
 .card img {
-  display: block;
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
 }
 
-/* prevent text blocking hover events */
+/* =========================
+   TEXT
+   ========================= */
+
+.card .name {
+  font-size: 0.72rem;
+  color: #e2e8f0;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.card .cost {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #fde68a;
+}
+
+/* =========================
+   SAFETY: TEXT DOESN'T BREAK HOVER
+   ========================= */
+
 .card .name,
 .card .cost {
   pointer-events: none;
