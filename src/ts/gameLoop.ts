@@ -1,7 +1,6 @@
 import { GridLanes } from "./GridLanesCLass.js";
 import type { GameState } from "./types.js";
 import { getEventCoordinates } from "./canvas.js";
-import { dragState } from "./dragState.js";
 
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
   return {
