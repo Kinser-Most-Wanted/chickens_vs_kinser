@@ -1,3 +1,5 @@
+import { dragState } from "./dragState.js";
+
 // =========================
 // TYPES
 // =========================
@@ -99,8 +101,17 @@ init(): void {
     cost.textContent = `${chicken.cost}`;
 
     // 🔥 CLICK HANDLER (important for future gameplay)
-    card.addEventListener("click", () => {
-      console.log(`Selected: ${chicken.name}`);
+    card.addEventListener("mousedown", (e) => {
+      dragState.isDragging = true;
+      dragState.chicken = chicken;
+      dragState.offsetX = e.offsetX;
+      dragState.offsetY = e.offsetY;
+    
+      console.log(`Dragging: ${chicken.name}`);
+    });
+
+    window.addEventListener("mouseup", () => {
+      dragState.isDragging = false;
     });
 
     card.appendChild(cost);
