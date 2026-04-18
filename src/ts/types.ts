@@ -23,6 +23,6 @@ export interface GameState {
   frameCount: number;
   grid?: GridLanes;
   units: Unit[];
-  mouseX?: number;
-  mouseY?: number;
+  coordX?: number;
+  coordY?: number;
 }

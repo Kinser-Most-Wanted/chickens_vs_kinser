@@ -1,5 +1,6 @@
 import { GridLanes } from "./GridLanesCLass.js";
 import type { GameState } from "./types.js";
+import { getEventCoordinates } from "./canvas.js";
 
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
   return {
@@ -28,13 +29,22 @@ export function renderFrame(
   renderingContext.fillStyle = "#111111";
   renderingContext.fillRect(0, 0, canvas.width, canvas.height);
 
+  if (gameState.grid) {
+    gameState.grid.render(renderingContext, gameState.coordX, gameState.coordY);
+  }
+
+  // Debug info positioned at the bottom to avoid being covered by the shop
   renderingContext.fillStyle = "#ffffff";
   renderingContext.font = "24px Arial";
-  renderingContext.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 20, 40);
-  renderingContext.fillText(`Frame: ${gameState.frameCount}`, 20, 80);
+  renderingContext.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 20, canvas.height - 100);
+  renderingContext.fillText(`Frame: ${gameState.frameCount}`, 20, canvas.height - 60);
 
-  if (gameState.grid) {
-    gameState.grid.render(renderingContext);
+  if (gameState.coordX !== undefined && gameState.coordY !== undefined) {
+    renderingContext.fillText(
+      `Mouse: ${Math.round(gameState.coordX)}, ${Math.round(gameState.coordY)}`,
+      20,
+      canvas.height - 20,
+    );
   }
 }
 
@@ -76,6 +86,37 @@ export function startGameLoop(
   renderingContext: CanvasRenderingContext2D,
 ): void {
   const gameState = createInitialGameState(canvas);
+
+  // Mouse movement & click listeners
+  const updateMousePosition = (event: MouseEvent | TouchEvent) => {
+    const { x, y } = getEventCoordinates(event, canvas);
+    gameState.coordX = x;
+    gameState.coordY = y;
+  };
+  canvas.addEventListener("mousemove", updateMousePosition);
+  canvas.addEventListener("mousedown", (event) => {
+    updateMousePosition(event);
+    attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
+  });
+
+  // Touch movement listeners
+  canvas.addEventListener(
+    "touchstart",
+    (event) => {
+      event.preventDefault();
+      updateMousePosition(event);
+      attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
+    },
+    { passive: false },
+  );
+  canvas.addEventListener(
+    "touchmove",
+    (event) => {
+      event.preventDefault();
+      updateMousePosition(event);
+    },
+    { passive: false },
+  );
 
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
