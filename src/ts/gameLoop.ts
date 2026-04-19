@@ -26,21 +26,41 @@ export function renderFrame(
   canvas: HTMLCanvasElement,
   renderingContext: CanvasRenderingContext2D,
   gameState: GameState,
+  shop: Shop, // ✅ added so UI can sync currency
 ): void {
   renderingContext.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Background
   renderingContext.fillStyle = "#111111";
   renderingContext.fillRect(0, 0, canvas.width, canvas.height);
 
+  // GRID
   if (gameState.grid) {
-    gameState.grid.render(renderingContext, gameState.coordX, gameState.coordY);
+    gameState.grid.render(
+      renderingContext,
+      gameState.coordX,
+      gameState.coordY,
+    );
   }
 
-  // Debug info positioned at the bottom to avoid being covered by the shop
+  // 💸 SYNC EXCEEDS WITH SHOP UI
+  shop.updateCurrency(gameState.exceeds);
+
+  // DEBUG INFO
   renderingContext.fillStyle = "#ffffff";
   renderingContext.font = "24px Arial";
-  renderingContext.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 20, canvas.height - 100);
-  renderingContext.fillText(`Frame: ${gameState.frameCount}`, 20, canvas.height - 60);
+
+  renderingContext.fillText(
+    `Canvas: ${canvas.width}x${canvas.height}`,
+    20,
+    canvas.height - 100,
+  );
+
+  renderingContext.fillText(
+    `Frame: ${gameState.frameCount}`,
+    20,
+    canvas.height - 60,
+  );
 
   if (gameState.coordX !== undefined && gameState.coordY !== undefined) {
     renderingContext.fillText(
