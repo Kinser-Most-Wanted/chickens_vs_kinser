@@ -43,6 +43,27 @@ export function renderFrame(
     );
   }
 
+    if (gameState.isDragging && gameState.selectedChickenId) {
+    const chicken = shop?.getChickenById(gameState.selectedChickenId);
+  
+    if (chicken && gameState.coordX && gameState.coordY) {
+      renderingContext.globalAlpha = 0.5;
+  
+      renderingContext.fillStyle = "yellow";
+      renderingContext.beginPath();
+      renderingContext.arc(
+        gameState.coordX,
+        gameState.coordY,
+        20,
+        0,
+        Math.PI * 2
+      );
+      renderingContext.fill();
+  
+      renderingContext.globalAlpha = 1;
+    }
+  }
+
   // ✅ SAFE SHOP SYNC
   if (shop) {
     shop.updateCurrency(gameState.exceeds);
@@ -136,6 +157,27 @@ export function attemptUnitPlacement(
   return true;
 }
 
+function beginDrag(gameState: GameState, x: number, y: number) {
+  gameState.isDragging = true;
+  gameState.draggedChickenId = gameState.selectedChickenId;
+  gameState.coordX = x;
+  gameState.coordY = y;
+}
+
+function endDrag(gameState: GameState, shop: Shop) {
+  if (gameState.isDragging) {
+    attemptUnitPlacement(
+      gameState.coordX!,
+      gameState.coordY!,
+      gameState,
+      shop
+    );
+  }
+
+  gameState.isDragging = false;
+  gameState.draggedChickenId = undefined;
+}
+
 export function startGameLoop(
   canvas: HTMLCanvasElement,
   renderingContext: CanvasRenderingContext2D,
@@ -143,76 +185,92 @@ export function startGameLoop(
 ): void {
   const gameState = createInitialGameState(canvas);
 
+  let activeDrag = false;
+
   shop.setOnSelect((chicken: Chicken) => {
-  gameState.selectedChickenId = chicken.id;
+    gameState.selectedChickenId = chicken.id;
   });
 
-  // Mouse movement & click listeners
   const updateMousePosition = (event: MouseEvent | TouchEvent) => {
     const { x, y } = getEventCoordinates(event, canvas);
     gameState.coordX = x;
     gameState.coordY = y;
   };
-  
+
+  const beginDrag = () => {
+    if (!gameState.selectedChickenId) return;
+    activeDrag = true;
+    gameState.isDragging = true;
+    gameState.draggedChickenId = gameState.selectedChickenId;
+  };
+
+  const endDrag = () => {
+    if (!activeDrag) return;
+
+    if (gameState.coordX !== undefined && gameState.coordY !== undefined) {
+      attemptUnitPlacement(
+        gameState.coordX,
+        gameState.coordY,
+        gameState,
+        shop
+      );
+    }
+
+    activeDrag = false;
+    gameState.isDragging = false;
+    gameState.draggedChickenId = undefined;
+  };
+
+  // =========================
+  // MOUSE INPUT
+  // =========================
   canvas.addEventListener("mousemove", updateMousePosition);
 
   canvas.addEventListener("mousedown", (event) => {
     updateMousePosition(event);
-  
-    gameState.isDragging = true;
-    gameState.draggedChickenId = gameState.selectedChickenId;
-  });
-  
-  canvas.addEventListener("mouseup", (event) => {
-    updateMousePosition(event);
-  
-    if (gameState.isDragging) {
-      attemptUnitPlacement(
-        gameState.coordX!,
-        gameState.coordY!,
-        gameState,
-        shop
-      );
-    }
-  
-    gameState.isDragging = false;
-    gameState.draggedChickenId = undefined;
+    beginDrag();
   });
 
-  canvas.addEventListener("touchstart", (event) => {
-    event.preventDefault();
+  canvas.addEventListener("mouseup", (event) => {
     updateMousePosition(event);
-  
-    gameState.isDragging = true;
-    gameState.draggedChickenId = gameState.selectedChickenId;
-  }, { passive: false });
-  
-  canvas.addEventListener("touchmove", (event) => {
-    event.preventDefault();
-    updateMousePosition(event);
-  }, { passive: false });
-  
-  canvas.addEventListener("touchend", (event) => {
-    event.preventDefault();
-    updateMousePosition(event);
-  
-    if (gameState.isDragging) {
-      attemptUnitPlacement(
-        gameState.coordX!,
-        gameState.coordY!,
-        gameState,
-        shop
-      );
-    }
-  
-    gameState.isDragging = false;
-    gameState.draggedChickenId = undefined;
-  }, { passive: false });
+    endDrag();
+  });
+
+  // =========================
+  // TOUCH INPUT
+  // =========================
+  canvas.addEventListener(
+    "touchstart",
+    (event) => {
+      event.preventDefault();
+      updateMousePosition(event);
+      beginDrag();
+    },
+    { passive: false },
+  );
+
+  canvas.addEventListener(
+    "touchmove",
+    (event) => {
+      event.preventDefault();
+      updateMousePosition(event);
+    },
+    { passive: false },
+  );
+
+  canvas.addEventListener(
+    "touchend",
+    (event) => {
+      event.preventDefault();
+      updateMousePosition(event);
+      endDrag();
+    },
+    { passive: false },
+  );
 
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
-  renderFrame(canvas, renderingContext, gameState, shop);
-
+    renderFrame(canvas, renderingContext, gameState, shop);
     window.requestAnimationFrame(runFrame);
   }
 
