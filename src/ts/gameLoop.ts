@@ -1,6 +1,8 @@
 import { GridLanes } from "./GridLanesCLass.js";
 import type { GameState } from "./types.js";
 import { getEventCoordinates } from "./canvas.js";
+import { Shop } from "./shop.js";
+import type { Chicken } from "./shop.js";
 
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
   return {
@@ -129,7 +131,7 @@ export function startGameLoop(
 ): void {
   const gameState = createInitialGameState(canvas);
 
-  shop.setOnSelect((chicken) => {
+  shop.setOnSelect((chicken: Chicken) => {
   gameState.selectedChickenId = chicken.id;
   });
 
