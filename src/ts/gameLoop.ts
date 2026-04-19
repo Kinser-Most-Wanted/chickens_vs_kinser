@@ -8,6 +8,9 @@ export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
     frameCount: 0,
     grid: new GridLanes(1, 9, { width: canvas.width, height: canvas.height }),
     units: [],
+
+    exceeds: 100,
+    selectedChickenId: undefined,
   };
 }
 
