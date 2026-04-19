@@ -116,7 +116,7 @@ export function attemptUnitPlacement(
   gameState.units.push({
     lane: coords.lane,
     cell: coords.cell,
-    type: chicken.id as any,
+    type: chicken.id,
   });
 
   return true;
