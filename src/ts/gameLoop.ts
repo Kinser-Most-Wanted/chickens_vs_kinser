@@ -181,11 +181,17 @@ export function startGameLoop(
     (event) => {
       event.preventDefault();
       updateMousePosition(event);
-    if (gameState.isDragging) {
-      attemptUnitPlacement(...);
-      gameState.isDragging = false;
-      gameState.draggedChickenId = undefined;
-    }
+      if (gameState.isDragging) {
+        attemptUnitPlacement(
+          gameState.coordX!,
+          gameState.coordY!,
+          gameState,
+          shop,
+        );
+      
+        gameState.isDragging = false;
+        gameState.draggedChickenId = undefined;
+      }
     },
     { passive: false },
   );
