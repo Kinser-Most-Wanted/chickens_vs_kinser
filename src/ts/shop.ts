@@ -1,4 +1,5 @@
 import { dragState } from "./dragState.js";
+import type { CurrencyWallet } from "./currency.js";
 
 // =========================
 // TYPES
@@ -43,12 +44,13 @@ const chickens: Chicken[] = [
 // =========================
 
 export class Shop {
-  private currency: number;
+  private currencyWallet: CurrencyWallet;
   private currencyText!: HTMLSpanElement;
   private shopContainer!: HTMLDivElement;
+  private chickenCards: { card: HTMLDivElement; chicken: Chicken }[] = [];
 
-  constructor(initialCurrency: number) {
-    this.currency = initialCurrency;
+  constructor(currencyWallet: CurrencyWallet) {
+    this.currencyWallet = currencyWallet;
   }
 
   init(): void {
@@ -84,12 +86,24 @@ export class Shop {
     const uiLayer = document.getElementById("uiLayer");
     uiLayer?.appendChild(topBar);
 
-    this.updateCurrency();
+    this.currencyWallet.subscribe(() => {
+      this.updateCurrency();
+      this.updateCardAvailability();
+    });
     this.renderShop();
+    this.updateCardAvailability();
   }
 
   private updateCurrency(): void {
-    this.currencyText.textContent = `${this.currency}`;
+    this.currencyText.textContent = `${this.currencyWallet.getBalance("exceeds")}`;
+  }
+
+  private updateCardAvailability(): void {
+    this.chickenCards.forEach(({ card, chicken }) => {
+      const canAfford = this.currencyWallet.canAfford("exceeds", chicken.cost);
+      card.classList.toggle("disabled", !canAfford);
+      card.setAttribute("aria-disabled", `${!canAfford}`);
+    });
   }
 
   private getBorderColor(cost: number): string {
@@ -122,6 +136,10 @@ export class Shop {
     card.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
       e.preventDefault();
+      if (!this.currencyWallet.canAfford("exceeds", chicken.cost)) {
+        console.log(`Not enough exceeds for: ${chicken.name}`);
+        return;
+      }
 
       dragState.isDragging = true;
       dragState.chicken = chicken;
@@ -134,6 +152,8 @@ export class Shop {
     card.appendChild(cost);
     card.appendChild(img);
     card.appendChild(name);
+
+    this.chickenCards.push({ card, chicken });
 
     return card;
   }

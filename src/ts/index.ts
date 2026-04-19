@@ -1,4 +1,5 @@
 import { applyCanvasDimensions, DEFAULT_CANVAS_SIZE } from "./canvas.js";
+import { CurrencyWallet } from "./currency.js";
 import { startGameLoop } from "./gameLoop.js";
 import { Shop } from "./shop.js";
 
@@ -21,11 +22,12 @@ function bootstrap(): void {
   }
 
   // SHOP UI
-  const shop = new Shop(100);
+  const currencyWallet = new CurrencyWallet({ exceeds: 100, eggs: 0 });
+  const shop = new Shop(currencyWallet);
   shop.init();
 
   // START GAME LOOP
-  startGameLoop(canvas, renderingContext);
+  startGameLoop(canvas, renderingContext, currencyWallet);
 }
 
 // ⚠️ Use "load" to ensure EVERYTHING (DOM + layout) is ready

@@ -54,6 +54,7 @@ test("placing a chicken requires dragging it from the shop onto an open grid cel
 
   const canvas = page.locator("#game-canvas");
   await expect(canvas).toBeVisible();
+  await expect(page.locator("#currency span")).toHaveText("100");
 
   const canvasBox = await canvas.boundingBox();
   expect(canvasBox).not.toBeNull();
@@ -81,4 +82,23 @@ test("placing a chicken requires dragging it from the shop onto an open grid cel
   await page.mouse.up();
 
   await expect.poll(() => placementLogs).toEqual(["Placed: Basic Chicken"]);
+  await expect(page.locator("#currency span")).toHaveText("0");
+});
+
+test("clicking a gameplay exceeds drop adds to the currency counter", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Start Game" }).click();
+
+  const canvas = page.locator("#game-canvas");
+  await expect(canvas).toBeVisible();
+  await expect(page.locator("#currency span")).toHaveText("100");
+
+  const canvasBox = await canvas.boundingBox();
+  expect(canvasBox).not.toBeNull();
+
+  await page.mouse.click(canvasBox!.x + 750, canvasBox!.y + 350);
+
+  await expect(page.locator("#currency span")).toHaveText("125");
 });

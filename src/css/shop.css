@@ -168,6 +168,11 @@
   transform: scale(0.98);
 }
 
+.card.disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.7) brightness(0.75);
+}
+
 /* prevents text from blocking drag/hover detection */
 .name,
 .cost {

@@ -18,11 +18,20 @@ export interface Unit {
   type: string;
 }
 
+export interface ExceedsDrop {
+  id: string;
+  pixelX: number;
+  pixelY: number;
+  amount: number;
+  radius: number;
+}
+
 export interface GameState {
   lastFrameTime: number;
   frameCount: number;
   grid?: GridLanes;
   units: Unit[];
+  exceedsDrops?: ExceedsDrop[];
   coordX?: number;
   coordY?: number;
 }
