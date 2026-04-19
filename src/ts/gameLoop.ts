@@ -87,26 +87,29 @@ export function attemptUnitPlacement(
 ): boolean {
   if (!gameState.grid) return false;
 
+  // 1. Convert pixel → grid
   const coords = gameState.grid.getGridCoordinates(pixelX, pixelY);
   if (!coords) return false;
 
+  // 2. Prevent stacking units
   const isOccupied = gameState.units.some(
     (unit) => unit.lane === coords.lane && unit.cell === coords.cell,
   );
   if (isOccupied) return false;
 
+  // 3. Determine selected chicken
   const selectedId =
     gameState.draggedChickenId ?? gameState.selectedChickenId;
 
-  // 🧪 TEST FALLBACK (no shop system)
   let chicken: Chicken;
-  
+
+  // 4. Resolve chicken from shop OR fallback for tests
   if (shop && selectedId) {
     const found = shop.getChickenById(selectedId);
     if (!found) return false;
     chicken = found;
   } else {
-    // 🧪 TEST EXPECTATION COMPATIBLE FALLBACK
+    // 🧪 TEST COMPATIBILITY FALLBACK
     chicken = {
       id: "chicken",
       name: "Chicken",
@@ -115,12 +118,15 @@ export function attemptUnitPlacement(
     };
   }
 
+  // 5. Check currency (exceeds system)
   if (gameState.exceeds < chicken.cost) {
     return false;
   }
 
+  // 6. Spend currency
   gameState.exceeds -= chicken.cost;
 
+  // 7. Place unit
   gameState.units.push({
     lane: coords.lane,
     cell: coords.cell,
@@ -150,8 +156,20 @@ export function startGameLoop(
   canvas.addEventListener("mousemove", updateMousePosition);
   canvas.addEventListener("mousedown", (event) => {
     updateMousePosition(event);
+  
+    // start drag
+    gameState.isDragging = true;
+    gameState.draggedChickenId = gameState.selectedChickenId;
+  
+    // attempt placement immediately if needed
     if (gameState.isDragging) {
-      attemptUnitPlacement(...);
+      attemptUnitPlacement(
+        gameState.coordX!,
+        gameState.coordY!,
+        gameState,
+        shop,
+      );
+  
       gameState.isDragging = false;
       gameState.draggedChickenId = undefined;
     }
@@ -179,10 +197,6 @@ export function startGameLoop(
     },
     { passive: false },
   );
-  canvas.addEventListener("mousedown", () => {
-  gameState.isDragging = true;
-  gameState.draggedChickenId = gameState.selectedChickenId;
-  });
 
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
