@@ -153,56 +153,61 @@ export function startGameLoop(
     gameState.coordX = x;
     gameState.coordY = y;
   };
+  
   canvas.addEventListener("mousemove", updateMousePosition);
+
   canvas.addEventListener("mousedown", (event) => {
     updateMousePosition(event);
   
-    // start drag
     gameState.isDragging = true;
     gameState.draggedChickenId = gameState.selectedChickenId;
+  });
   
-    // attempt placement immediately if needed
+  canvas.addEventListener("mouseup", (event) => {
+    updateMousePosition(event);
+  
     if (gameState.isDragging) {
       attemptUnitPlacement(
         gameState.coordX!,
         gameState.coordY!,
         gameState,
-        shop,
+        shop
       );
-  
-      gameState.isDragging = false;
-      gameState.draggedChickenId = undefined;
     }
+  
+    gameState.isDragging = false;
+    gameState.draggedChickenId = undefined;
   });
 
-  // Touch movement listeners
-  canvas.addEventListener(
-    "touchstart",
-    (event) => {
-      event.preventDefault();
-      updateMousePosition(event);
-      if (gameState.isDragging) {
-        attemptUnitPlacement(
-          gameState.coordX!,
-          gameState.coordY!,
-          gameState,
-          shop,
-        );
-      
-        gameState.isDragging = false;
-        gameState.draggedChickenId = undefined;
-      }
-    },
-    { passive: false },
-  );
-  canvas.addEventListener(
-    "touchmove",
-    (event) => {
-      event.preventDefault();
-      updateMousePosition(event);
-    },
-    { passive: false },
-  );
+  canvas.addEventListener("touchstart", (event) => {
+    event.preventDefault();
+    updateMousePosition(event);
+  
+    gameState.isDragging = true;
+    gameState.draggedChickenId = gameState.selectedChickenId;
+  }, { passive: false });
+  
+  canvas.addEventListener("touchmove", (event) => {
+    event.preventDefault();
+    updateMousePosition(event);
+  }, { passive: false });
+  
+  canvas.addEventListener("touchend", (event) => {
+    event.preventDefault();
+    updateMousePosition(event);
+  
+    if (gameState.isDragging) {
+      attemptUnitPlacement(
+        gameState.coordX!,
+        gameState.coordY!,
+        gameState,
+        shop
+      );
+    }
+  
+    gameState.isDragging = false;
+    gameState.draggedChickenId = undefined;
+  }, { passive: false });
 
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
