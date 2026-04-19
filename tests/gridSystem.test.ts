@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { GridLanes } from "../src/ts/GridLanesCLass";
 import { attemptUnitPlacement } from "../src/ts/gameLoop";
 import type { GameState, CanvasDimensions } from "../src/ts/types";
+import type { Chicken } from "../src/ts/shop";
 
 test.describe("Grid System Logic", () => {
   const dimensions: CanvasDimensions = { width: 800, height: 600 };
@@ -16,6 +17,12 @@ test.describe("Grid System Logic", () => {
   const totalGridHeight = lanes * cellHeight; // 500
   const xOffset = (dimensions.width - totalGridWidth) / 2; // (800 - 720) / 2 = 40
   const yOffset = (dimensions.height - totalGridHeight) / 2; // (600 - 500) / 2 = 50
+  const basicChicken: Chicken = {
+    id: "basic",
+    name: "Basic Chicken",
+    cost: 100,
+    image: "./assets/basicchicken.png",
+  };
 
   test("Grid Coordinate Mapping: getPixelCoordinates calculates center of cell", () => {
     // Test for lane 0, cell 0
@@ -70,15 +77,32 @@ test.describe("Grid System Logic", () => {
     const x = xOffset + cellWidth / 2;
     const y = yOffset + cellHeight / 2;
 
-    const result = attemptUnitPlacement(x, y, gameState);
+    const result = attemptUnitPlacement(x, y, gameState, basicChicken);
     
     expect(result).toBe(true);
     expect(gameState.units.length).toBe(1);
     expect(gameState.units[0]).toEqual({
       lane: 0,
       cell: 0,
-      type: "chicken",
+      type: "basic",
     });
+  });
+
+  test("Unit Placement Logic: attemptUnitPlacement ignores plain cell clicks without a dragged chicken", () => {
+    const gameState: GameState = {
+      lastFrameTime: 0,
+      frameCount: 0,
+      grid: grid,
+      units: [],
+    };
+
+    const x = xOffset + cellWidth / 2;
+    const y = yOffset + cellHeight / 2;
+
+    const result = attemptUnitPlacement(x, y, gameState);
+
+    expect(result).toBe(false);
+    expect(gameState.units.length).toBe(0);
   });
 
   test("Unit Placement Logic: attemptUnitPlacement failure on occupied cell", () => {
@@ -92,7 +116,7 @@ test.describe("Grid System Logic", () => {
     const x = xOffset + cellWidth + cellWidth / 2;
     const y = yOffset + cellHeight + cellHeight / 2;
 
-    const result = attemptUnitPlacement(x, y, gameState);
+    const result = attemptUnitPlacement(x, y, gameState, basicChicken);
     
     expect(result).toBe(false);
     expect(gameState.units.length).toBe(1); // Length should not increase
@@ -106,7 +130,7 @@ test.describe("Grid System Logic", () => {
       units: [],
     };
 
-    const result = attemptUnitPlacement(0, 0, gameState); // Outside the 40px offset
+    const result = attemptUnitPlacement(0, 0, gameState, basicChicken); // Outside the 40px offset
     
     expect(result).toBe(false);
     expect(gameState.units.length).toBe(0);

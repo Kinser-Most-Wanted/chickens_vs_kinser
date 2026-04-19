@@ -2,6 +2,7 @@ import { GridLanes } from "./GridLanesCLass.js";
 import type { GameState, Unit } from "./types.js";
 import { getEventCoordinates } from "./canvas.js";
 import { dragState } from "./dragState.js";
+import type { Chicken } from "./shop.js";
 
 const spriteCache: Record<string, HTMLImageElement> = {};
 
@@ -139,8 +140,9 @@ export function attemptUnitPlacement(
   pixelX: number,
   pixelY: number,
   gameState: GameState,
+  chicken: Chicken | null = dragState.chicken,
 ): boolean {
-  if (!gameState.grid) return false;
+  if (!gameState.grid || !chicken) return false;
 
   const coords = gameState.grid.getGridCoordinates(pixelX, pixelY);
   if (!coords) return false;
@@ -153,7 +155,7 @@ export function attemptUnitPlacement(
   const unit: Unit = {
     lane: coords.lane,
     cell: coords.cell,
-    type: dragState.chicken?.id ?? "chicken",
+    type: chicken.id,
   };
 
   gameState.units.push(unit);
@@ -172,60 +174,36 @@ export function startGameLoop(
     gameState.coordY = y;
   };
 
-  canvas.addEventListener("mousemove", updatePointerPosition);
-
-  canvas.addEventListener("mousedown", (event) => {
-    updatePointerPosition(event);
-
+  canvas.addEventListener("pointermove", updatePointerPosition);
+  window.addEventListener("pointermove", (event) => {
     if (dragState.isDragging) {
-      return;
+      updatePointerPosition(event);
     }
-
-    attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
   });
 
-  canvas.addEventListener("mouseup", (event) => {
+  canvas.addEventListener("pointerdown", (event) => {
+    updatePointerPosition(event);
+  });
+
+  window.addEventListener("pointerup", (event) => {
     if (!dragState.isDragging || !dragState.chicken) return;
 
     updatePointerPosition(event);
+    const placedChicken = dragState.chicken;
 
     const success = attemptUnitPlacement(
       gameState.coordX!,
       gameState.coordY!,
       gameState,
+      placedChicken,
     );
 
     if (success) {
-      console.log(`Placed: ${dragState.chicken.name}`);
-      resetDragState();
+      console.log(`Placed: ${placedChicken.name}`);
     }
+
+    resetDragState();
   });
-
-  canvas.addEventListener(
-    "touchstart",
-    (event) => {
-      event.preventDefault();
-      updatePointerPosition(event);
-
-      if (dragState.isDragging && dragState.chicken) {
-        const success = attemptUnitPlacement(
-          gameState.coordX!,
-          gameState.coordY!,
-          gameState,
-        );
-
-        if (success) {
-          console.log(`Placed: ${dragState.chicken.name}`);
-          resetDragState();
-        }
-
-        return;
-      }
-
-      attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
-    },
-    { passive: false },
-  );
 
   canvas.addEventListener(
     "touchmove",

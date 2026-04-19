@@ -105,6 +105,7 @@
 
   cursor: pointer;
   user-select: none;
+  touch-action: none;
 
   transition: transform 0.15s ease;
 }

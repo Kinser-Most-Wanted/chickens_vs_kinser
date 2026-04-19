@@ -37,3 +37,48 @@ test("start game opens the game page and renders the landscape canvas with no st
   expect(consoleErrors).toEqual([]);
   expect(pageErrors).toEqual([]);
 });
+
+test("placing a chicken requires dragging it from the shop onto an open grid cell", async ({
+  page,
+}) => {
+  const placementLogs: string[] = [];
+
+  page.on("console", (message) => {
+    if (message.text().startsWith("Placed:")) {
+      placementLogs.push(message.text());
+    }
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Start Game" }).click();
+
+  const canvas = page.locator("#game-canvas");
+  await expect(canvas).toBeVisible();
+
+  const canvasBox = await canvas.boundingBox();
+  expect(canvasBox).not.toBeNull();
+
+  const targetCell = {
+    x: canvasBox!.x + 80,
+    y: canvasBox!.y + 200,
+  };
+
+  await page.mouse.click(targetCell.x, targetCell.y);
+  expect(placementLogs).toEqual([]);
+
+  const chickenCard = page.locator(".card", { hasText: "Basic Chicken" });
+  await expect(chickenCard).toBeVisible();
+
+  const cardBox = await chickenCard.boundingBox();
+  expect(cardBox).not.toBeNull();
+
+  await page.mouse.move(
+    cardBox!.x + cardBox!.width / 2,
+    cardBox!.y + cardBox!.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(targetCell.x, targetCell.y);
+  await page.mouse.up();
+
+  await expect.poll(() => placementLogs).toEqual(["Placed: Basic Chicken"]);
+});

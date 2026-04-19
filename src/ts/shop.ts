@@ -117,9 +117,10 @@ export class Shop {
 
     /**
      * DRAG START (PvZ-style pickup)
-     * This does NOT place the unit yet — only signals game loop
+     * This does NOT place the unit yet - only signals game loop.
      */
-    card.addEventListener("mousedown", (e) => {
+    card.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
       e.preventDefault();
 
       dragState.isDragging = true;
