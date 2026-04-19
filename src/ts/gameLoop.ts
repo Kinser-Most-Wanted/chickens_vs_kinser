@@ -87,8 +87,13 @@ export function attemptUnitPlacement(
 export function startGameLoop(
   canvas: HTMLCanvasElement,
   renderingContext: CanvasRenderingContext2D,
+  shop: Shop,
 ): void {
   const gameState = createInitialGameState(canvas);
+
+  shop.setOnSelect((chicken) => {
+  gameState.selectedChickenId = chicken.id;
+  });
 
   // Mouse movement & click listeners
   const updateMousePosition = (event: MouseEvent | TouchEvent) => {
