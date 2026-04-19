@@ -24,8 +24,8 @@ function initGame(): void {
   // SHOP Creation
   const shop = new Shop(100);
   shop.init();
-
-  startGameLoop(canvas, renderingContext);
+  
+  startGameLoop(canvas, renderingContext, shop);
 }
 
 window.addEventListener("DOMContentLoaded", initGame);
