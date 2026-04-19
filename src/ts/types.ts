@@ -25,4 +25,6 @@ export interface GameState {
   units: Unit[];
   coordX?: number;
   coordY?: number;
+  exceeds: number;
+  selectedChickenId?: string;
 }
