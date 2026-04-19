@@ -168,7 +168,7 @@ export function startGameLoop(
 
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
-    renderFrame(canvas, renderingContext, gameState);
+  renderFrame(canvas, renderingContext, gameState, shop);
 
     window.requestAnimationFrame(runFrame);
   }
