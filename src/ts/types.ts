@@ -15,7 +15,7 @@ export interface GridConfig {
 export interface Unit {
   lane: number;
   cell: number;
-  type: "chicken"; // Example type, we'll expand this later
+  type: string;
 }
 
 export interface GameState {
