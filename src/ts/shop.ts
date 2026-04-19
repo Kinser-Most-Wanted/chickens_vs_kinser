@@ -70,7 +70,7 @@ init(): void {
   const uiLayer = document.getElementById("uiLayer");
   uiLayer?.appendChild(topBar);
 
-  this.updateCurrency();
+  this.updateCurrencyDisplay();
   this.renderShop();
 }
 
