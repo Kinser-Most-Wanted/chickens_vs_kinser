@@ -30,7 +30,10 @@ export class Shop {
   private currencyText!: HTMLSpanElement;
   private shopContainer!: HTMLDivElement;
 
-  constructor(initialCurrency: number) {
+  constructor(
+    initialCurrency: number,
+    private onSelect?: (chicken: Chicken) => void
+  ) {
     this.currency = initialCurrency;
   }
 
@@ -71,7 +74,7 @@ init(): void {
   this.renderShop();
 }
 
-  private updateCurrency(): void {
+  private updateCurrencyDisplay(): void {
     this.currencyText.textContent = `${this.currency}`;
   }
 
@@ -98,9 +101,8 @@ init(): void {
     cost.className = "cost";
     cost.textContent = `${chicken.cost}`;
 
-    // 🔥 CLICK HANDLER (important for future gameplay)
     card.addEventListener("click", () => {
-      console.log(`Selected: ${chicken.name}`);
+      this.onSelect?.(chicken);
     });
 
     card.appendChild(cost);
@@ -117,5 +119,18 @@ init(): void {
       .forEach(chicken => {
         this.shopContainer.appendChild(this.createChickenCard(chicken));
       });
+  }
+
+  public setOnSelect(fn: (chicken: Chicken) => void): void {
+  this.onSelect = fn;
+  }
+
+  public getChickenById(id: string): Chicken | undefined {
+  return chickens.find(c => c.id === id);
+  }
+
+  public updateCurrency(amount: number): void {
+  this.currency = amount;
+  this.updateCurrencyDisplay();
   }
 }
