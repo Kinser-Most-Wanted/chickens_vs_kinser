@@ -101,8 +101,13 @@ init(): void {
     cost.className = "cost";
     cost.textContent = `${chicken.cost}`;
 
-    card.addEventListener("click", () => {
+    card.addEventListener("mousedown", () => {
       this.onSelect?.(chicken);
+    });
+
+    card.addEventListener("dragstart", (e) => {
+    e.preventDefault();
+    this.onSelect?.(chicken);
     });
 
     card.appendChild(cost);
