@@ -27,4 +27,6 @@ export interface GameState {
   coordY?: number;
   exceeds: number;
   selectedChickenId?: string;
+  isDragging?: boolean;
+  draggedChickenId?: string;
 }
