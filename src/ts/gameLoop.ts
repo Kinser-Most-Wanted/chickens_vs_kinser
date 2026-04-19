@@ -95,7 +95,8 @@ export function attemptUnitPlacement(
   );
   if (isOccupied) return false;
 
-  const selectedId = gameState.selectedChickenId;
+  const selectedId =
+    gameState.draggedChickenId ?? gameState.selectedChickenId;
 
   // 🧪 TEST FALLBACK (no shop system)
   let chicken: Chicken;
@@ -149,7 +150,11 @@ export function startGameLoop(
   canvas.addEventListener("mousemove", updateMousePosition);
   canvas.addEventListener("mousedown", (event) => {
     updateMousePosition(event);
-    attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState, shop);
+    if (gameState.isDragging) {
+      attemptUnitPlacement(...);
+      gameState.isDragging = false;
+      gameState.draggedChickenId = undefined;
+    }
   });
 
   // Touch movement listeners
@@ -158,7 +163,11 @@ export function startGameLoop(
     (event) => {
       event.preventDefault();
       updateMousePosition(event);
-      attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState, shop);
+    if (gameState.isDragging) {
+      attemptUnitPlacement(...);
+      gameState.isDragging = false;
+      gameState.draggedChickenId = undefined;
+    }
     },
     { passive: false },
   );
@@ -170,6 +179,10 @@ export function startGameLoop(
     },
     { passive: false },
   );
+  canvas.addEventListener("mousedown", () => {
+  gameState.isDragging = true;
+  gameState.draggedChickenId = gameState.selectedChickenId;
+  });
 
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
