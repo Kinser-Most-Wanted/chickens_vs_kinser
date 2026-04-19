@@ -157,27 +157,6 @@ export function attemptUnitPlacement(
   return true;
 }
 
-function beginDrag(gameState: GameState, x: number, y: number) {
-  gameState.isDragging = true;
-  gameState.draggedChickenId = gameState.selectedChickenId;
-  gameState.coordX = x;
-  gameState.coordY = y;
-}
-
-function endDrag(gameState: GameState, shop: Shop) {
-  if (gameState.isDragging) {
-    attemptUnitPlacement(
-      gameState.coordX!,
-      gameState.coordY!,
-      gameState,
-      shop
-    );
-  }
-
-  gameState.isDragging = false;
-  gameState.draggedChickenId = undefined;
-}
-
 export function startGameLoop(
   canvas: HTMLCanvasElement,
   renderingContext: CanvasRenderingContext2D,
@@ -226,15 +205,15 @@ export function startGameLoop(
   // =========================
   canvas.addEventListener("mousemove", updateMousePosition);
 
-  canvas.addEventListener("mousedown", (event) => {
-    updateMousePosition(event);
-    beginDrag();
-  });
-
-  canvas.addEventListener("mouseup", (event) => {
-    updateMousePosition(event);
-    endDrag();
-  });
+    canvas.addEventListener("mousedown", (event) => {
+      updateMousePosition(event);
+      beginDrag();
+    });
+    
+    canvas.addEventListener("mouseup", (event) => {
+      updateMousePosition(event);
+      endDrag();
+    });
 
   // =========================
   // TOUCH INPUT
@@ -246,18 +225,9 @@ export function startGameLoop(
       updateMousePosition(event);
       beginDrag();
     },
-    { passive: false },
+    { passive: false }
   );
-
-  canvas.addEventListener(
-    "touchmove",
-    (event) => {
-      event.preventDefault();
-      updateMousePosition(event);
-    },
-    { passive: false },
-  );
-
+  
   canvas.addEventListener(
     "touchend",
     (event) => {
@@ -265,7 +235,7 @@ export function startGameLoop(
       updateMousePosition(event);
       endDrag();
     },
-    { passive: false },
+    { passive: false }
   );
 
   function runFrame(currentTime: number): void {
