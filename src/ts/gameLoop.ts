@@ -62,26 +62,44 @@ export function attemptUnitPlacement(
   pixelX: number,
   pixelY: number,
   gameState: GameState,
+  shop: Shop,
 ): boolean {
   if (!gameState.grid) return false;
 
+  // 1. Must have a selected unit
+  const selectedId = gameState.selectedChickenId;
+  if (!selectedId) return false;
+
+  // 2. Look up chicken from shop
+  const chicken = shop.getChickenById(selectedId);
+  if (!chicken) return false;
+
+  // 3. Check grid position validity
   const coords = gameState.grid.getGridCoordinates(pixelX, pixelY);
   if (!coords) return false;
 
+  // 4. Check if cell is already occupied
   const isOccupied = gameState.units.some(
     (unit) => unit.lane === coords.lane && unit.cell === coords.cell,
   );
+  if (isOccupied) return false;
 
-  if (!isOccupied) {
-    gameState.units.push({
-      lane: coords.lane,
-      cell: coords.cell,
-      type: "chicken",
-    });
-    return true;
+  // 5. Check currency (exceeds system)
+  if (gameState.exceeds < chicken.cost) {
+    return false;
   }
 
-  return false;
+  // 6. Spend currency
+  gameState.exceeds -= chicken.cost;
+
+  // 7. Place unit
+  gameState.units.push({
+    lane: coords.lane,
+    cell: coords.cell,
+    type: chicken.id as any,
+  });
+
+  return true;
 }
 
 export function startGameLoop(
@@ -104,7 +122,7 @@ export function startGameLoop(
   canvas.addEventListener("mousemove", updateMousePosition);
   canvas.addEventListener("mousedown", (event) => {
     updateMousePosition(event);
-    attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
+    attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState, shop);
   });
 
   // Touch movement listeners
@@ -113,7 +131,7 @@ export function startGameLoop(
     (event) => {
       event.preventDefault();
       updateMousePosition(event);
-      attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
+      attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState, shop);
     },
     { passive: false },
   );
