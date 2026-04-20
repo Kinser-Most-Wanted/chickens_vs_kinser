@@ -15,7 +15,15 @@ export interface GridConfig {
 export interface Unit {
   lane: number;
   cell: number;
-  type: "chicken"; // Example type, we'll expand this later
+  type: string;
+}
+
+export interface ExceedsDrop {
+  id: string;
+  pixelX: number;
+  pixelY: number;
+  amount: number;
+  radius: number;
 }
 
 export interface GameState {
@@ -23,6 +31,7 @@ export interface GameState {
   frameCount: number;
   grid?: GridLanes;
   units: Unit[];
+  exceedsDrops?: ExceedsDrop[];
   coordX?: number;
   coordY?: number;
 }

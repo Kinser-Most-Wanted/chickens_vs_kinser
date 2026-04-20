@@ -1,17 +1,17 @@
 import { applyCanvasDimensions, DEFAULT_CANVAS_SIZE } from "./canvas.js";
+import { CurrencyWallet } from "./currency.js";
 import { startGameLoop } from "./gameLoop.js";
 import { Shop } from "./shop.js";
 
-function initGame(): void {
-  const canvas = document.getElementById(
-    "game-canvas",
-  ) as HTMLCanvasElement | null;
+function bootstrap(): void {
+  const canvas = document.getElementById("game-canvas") as HTMLCanvasElement | null;
 
   if (!canvas) {
     console.error("Game canvas element not found.");
     return;
   }
 
+  // ✅ FORCE CANVAS SIZE IMMEDIATELY (before anything else)
   applyCanvasDimensions(canvas, DEFAULT_CANVAS_SIZE);
 
   const renderingContext = canvas.getContext("2d");
@@ -21,11 +21,14 @@ function initGame(): void {
     return;
   }
 
-  // SHOP Creation
-  const shop = new Shop(100);
+  // SHOP UI
+  const currencyWallet = new CurrencyWallet({ exceeds: 100, eggs: 0 });
+  const shop = new Shop(currencyWallet);
   shop.init();
 
-  startGameLoop(canvas, renderingContext);
+  // START GAME LOOP
+  startGameLoop(canvas, renderingContext, currencyWallet);
 }
 
-window.addEventListener("DOMContentLoaded", initGame);
+// ⚠️ Use "load" to ensure EVERYTHING (DOM + layout) is ready
+window.addEventListener("load", bootstrap);

@@ -105,6 +105,7 @@
 
   cursor: pointer;
   user-select: none;
+  touch-action: none;
 
   transition: transform 0.15s ease;
 }
@@ -137,4 +138,43 @@
   margin-top: 2px;
   text-align: center;
   font-weight: bold;
+}
+
+
+/* =========================
+   INTERACTION PATCH (DO NOT CHANGE VISUALS)
+   ========================= */
+
+/* ensures shop still receives input */
+#shop-wrapper,
+#shop,
+.card {
+  pointer-events: auto;
+}
+
+/* hover enhancement (keeps your original scale behavior but stabilizes it) */
+.card {
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+/* preserves your original hover but makes it smoother + drag-ready */
+.card:hover {
+  transform: scale(1.05);
+  filter: brightness(1.08);
+}
+
+/* click feedback (needed for drag start state later) */
+.card:active {
+  transform: scale(0.98);
+}
+
+.card.disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.7) brightness(0.75);
+}
+
+/* prevents text from blocking drag/hover detection */
+.name,
+.cost {
+  pointer-events: none;
 }

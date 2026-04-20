@@ -1,14 +1,149 @@
 import { GridLanes } from "./GridLanesCLass.js";
-import type { GameState } from "./types.js";
+import type { ExceedsDrop, GameState, Unit } from "./types.js";
 import { getEventCoordinates } from "./canvas.js";
+import { dragState } from "./dragState.js";
+import type { Chicken } from "./shop.js";
+import type { CurrencyWallet } from "./currency.js";
+
+const spriteCache: Record<string, HTMLImageElement> = {};
+
+function getSprite(src: string): HTMLImageElement {
+  if (!spriteCache[src]) {
+    const img = new Image();
+    img.src = src;
+    spriteCache[src] = img;
+  }
+
+  return spriteCache[src];
+}
+
+function getUnitSpriteSrc(type: string): string {
+  switch (type) {
+    case "exceeds":
+      return "./assets/exceedschicken.png";
+    case "tank":
+      return "./assets/tankchicken.png";
+    case "basic":
+    case "chicken":
+    default:
+      return "./assets/basicchicken.png";
+  }
+}
+
+function renderUnits(
+  renderingContext: CanvasRenderingContext2D,
+  gameState: GameState,
+): void {
+  if (!gameState.grid) return;
+
+  for (const unit of gameState.units) {
+    const pos = gameState.grid.getPixelCoordinates(unit.lane, unit.cell);
+    if (!pos) continue;
+
+    const img = getSprite(getUnitSpriteSrc(unit.type));
+    renderingContext.drawImage(img, pos.pixelX - 30, pos.pixelY - 30, 60, 60);
+  }
+}
+
+function renderExceedsDrops(
+  renderingContext: CanvasRenderingContext2D,
+  gameState: GameState,
+): void {
+  if (!gameState.exceedsDrops?.length) return;
+
+  const img = getSprite("./assets/exceeds.png");
+
+  for (const drop of gameState.exceedsDrops) {
+    renderingContext.drawImage(
+      img,
+      drop.pixelX - drop.radius,
+      drop.pixelY - drop.radius,
+      drop.radius * 2,
+      drop.radius * 2,
+    );
+  }
+}
+
+function renderDragPreview(
+  renderingContext: CanvasRenderingContext2D,
+  gameState: GameState,
+): void {
+  if (
+    !dragState.isDragging ||
+    !dragState.chicken ||
+    !gameState.grid ||
+    gameState.coordX === undefined ||
+    gameState.coordY === undefined
+  ) {
+    return;
+  }
+
+  const coords = gameState.grid.getGridCoordinates(
+    gameState.coordX,
+    gameState.coordY,
+  );
+  if (!coords) return;
+
+  const pixel = gameState.grid.getPixelCoordinates(coords.lane, coords.cell);
+  const img = getSprite(dragState.chicken.image);
+
+  renderingContext.save();
+  renderingContext.globalAlpha = 0.6;
+  renderingContext.drawImage(img, pixel.pixelX - 30, pixel.pixelY - 30, 60, 60);
+  renderingContext.restore();
+}
+
+function resetDragState(): void {
+  dragState.isDragging = false;
+  dragState.chicken = null;
+  dragState.offsetX = 0;
+  dragState.offsetY = 0;
+}
 
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
+  const startingDrop: ExceedsDrop = {
+    id: "starting-exceeds",
+    pixelX: canvas.width - 50,
+    pixelY: canvas.height - 50,
+    amount: 25,
+    radius: 24,
+  };
+
   return {
     lastFrameTime: 0,
     frameCount: 0,
     grid: new GridLanes(1, 9, { width: canvas.width, height: canvas.height }),
     units: [],
+    exceedsDrops: [startingDrop],
   };
+}
+
+export function collectExceeds(amount: number, currencyWallet: CurrencyWallet): boolean {
+  return currencyWallet.add("exceeds", amount);
+}
+
+export function attemptExceedsCollection(
+  pixelX: number,
+  pixelY: number,
+  gameState: GameState,
+  currencyWallet: CurrencyWallet,
+): boolean {
+  const drop = gameState.exceedsDrops?.find((candidate) => {
+    const distanceX = pixelX - candidate.pixelX;
+    const distanceY = pixelY - candidate.pixelY;
+
+    return Math.hypot(distanceX, distanceY) <= candidate.radius;
+  });
+
+  if (!drop || !collectExceeds(drop.amount, currencyWallet)) {
+    return false;
+  }
+
+  gameState.exceedsDrops = gameState.exceedsDrops?.filter(
+    (candidate) => candidate.id !== drop.id,
+  );
+
+  return true;
 }
 
 export function updateGameState(
@@ -33,11 +168,22 @@ export function renderFrame(
     gameState.grid.render(renderingContext, gameState.coordX, gameState.coordY);
   }
 
-  // Debug info positioned at the bottom to avoid being covered by the shop
+  renderUnits(renderingContext, gameState);
+  renderExceedsDrops(renderingContext, gameState);
+  renderDragPreview(renderingContext, gameState);
+
   renderingContext.fillStyle = "#ffffff";
   renderingContext.font = "24px Arial";
-  renderingContext.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 20, canvas.height - 100);
-  renderingContext.fillText(`Frame: ${gameState.frameCount}`, 20, canvas.height - 60);
+  renderingContext.fillText(
+    `Canvas: ${canvas.width}x${canvas.height}`,
+    20,
+    canvas.height - 100,
+  );
+  renderingContext.fillText(
+    `Frame: ${gameState.frameCount}`,
+    20,
+    canvas.height - 60,
+  );
 
   if (gameState.coordX !== undefined && gameState.coordY !== undefined) {
     renderingContext.fillText(
@@ -48,19 +194,17 @@ export function renderFrame(
   }
 }
 
-/**
- * Acts as the logic gate for adding entities, ensuring we don't place units out of bounds or stack them on occupied cells.
- * @param pixelX - Raw horizontal canvas pixel coordinate.
- * @param pixelY - Raw vertical canvas pixel coordinate.
- * @param gameState - The active state to modify.
- * @returns True if the unit was placed, false if placement was blocked.
- */
 export function attemptUnitPlacement(
   pixelX: number,
   pixelY: number,
   gameState: GameState,
+  chicken: Chicken | null = dragState.chicken,
+  currencyWallet: CurrencyWallet | null = null,
 ): boolean {
-  if (!gameState.grid) return false;
+  if (!gameState.grid || !chicken) return false;
+  if (currencyWallet && !currencyWallet.canAfford("exceeds", chicken.cost)) {
+    return false;
+  }
 
   const coords = gameState.grid.getGridCoordinates(pixelX, pixelY);
   if (!coords) return false;
@@ -68,52 +212,81 @@ export function attemptUnitPlacement(
   const isOccupied = gameState.units.some(
     (unit) => unit.lane === coords.lane && unit.cell === coords.cell,
   );
+  if (isOccupied) return false;
 
-  if (!isOccupied) {
-    gameState.units.push({
-      lane: coords.lane,
-      cell: coords.cell,
-      type: "chicken",
-    });
-    return true;
+  const unit: Unit = {
+    lane: coords.lane,
+    cell: coords.cell,
+    type: chicken.id,
+  };
+
+  if (currencyWallet && !currencyWallet.spend("exceeds", chicken.cost)) {
+    return false;
   }
 
-  return false;
+  gameState.units.push(unit);
+  return true;
 }
 
 export function startGameLoop(
   canvas: HTMLCanvasElement,
   renderingContext: CanvasRenderingContext2D,
+  currencyWallet: CurrencyWallet,
 ): void {
   const gameState = createInitialGameState(canvas);
 
-  // Mouse movement & click listeners
-  const updateMousePosition = (event: MouseEvent | TouchEvent) => {
+  const updatePointerPosition = (event: MouseEvent | TouchEvent) => {
     const { x, y } = getEventCoordinates(event, canvas);
     gameState.coordX = x;
     gameState.coordY = y;
   };
-  canvas.addEventListener("mousemove", updateMousePosition);
-  canvas.addEventListener("mousedown", (event) => {
-    updateMousePosition(event);
-    attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
+
+  canvas.addEventListener("pointermove", updatePointerPosition);
+  window.addEventListener("pointermove", (event) => {
+    if (dragState.isDragging) {
+      updatePointerPosition(event);
+    }
   });
 
-  // Touch movement listeners
-  canvas.addEventListener(
-    "touchstart",
-    (event) => {
-      event.preventDefault();
-      updateMousePosition(event);
-      attemptUnitPlacement(gameState.coordX!, gameState.coordY!, gameState);
-    },
-    { passive: false },
-  );
+  canvas.addEventListener("pointerdown", (event) => {
+    updatePointerPosition(event);
+
+    if (!dragState.isDragging) {
+      attemptExceedsCollection(
+        gameState.coordX!,
+        gameState.coordY!,
+        gameState,
+        currencyWallet,
+      );
+    }
+  });
+
+  window.addEventListener("pointerup", (event) => {
+    if (!dragState.isDragging || !dragState.chicken) return;
+
+    updatePointerPosition(event);
+    const placedChicken = dragState.chicken;
+
+    const success = attemptUnitPlacement(
+      gameState.coordX!,
+      gameState.coordY!,
+      gameState,
+      placedChicken,
+      currencyWallet,
+    );
+
+    if (success) {
+      console.log(`Placed: ${placedChicken.name}`);
+    }
+
+    resetDragState();
+  });
+
   canvas.addEventListener(
     "touchmove",
     (event) => {
       event.preventDefault();
-      updateMousePosition(event);
+      updatePointerPosition(event);
     },
     { passive: false },
   );
@@ -121,7 +294,6 @@ export function startGameLoop(
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
     renderFrame(canvas, renderingContext, gameState);
-
     window.requestAnimationFrame(runFrame);
   }
 
