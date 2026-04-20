@@ -31,6 +31,17 @@ export interface Projectile {
   damage: number;
 }
 
+export interface LaneClearState {
+  lane: number;
+  armed: boolean;
+}
+
+export interface ActiveLaneClear {
+  lane: number;
+  x: number;
+  speed: number;
+}
+
 export interface GameState {
   lastFrameTime: number;
   frameCount: number;
@@ -38,6 +49,8 @@ export interface GameState {
   units: Unit[];
   projectiles: Projectile[];
   exceedsDrops?: ExceedsDrop[];
+  laneClears: LaneClearState[];
+  activeLaneClears: ActiveLaneClear[];
   coordX?: number;
   coordY?: number;
 }
