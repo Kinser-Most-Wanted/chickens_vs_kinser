@@ -333,3 +333,24 @@ canvas {
   transform: translateY(-2px);
   filter: brightness(1.05);
 }
+
+.canvas-button {
+  position: absolute;   /* position relative to container */
+  top: 10px;            /* distance from top of container */
+  right: 10px;          /* distance from right */
+  z-index: 10;          /* above UI and canvas */
+  padding: 8px 16px;
+  background-color: #f59e0b;
+  color: #111827;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.canvas-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
