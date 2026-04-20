@@ -49,7 +49,8 @@ export class Kinser extends Unit {
    * Kinsers attack chickens blocking their path in the same lane.
    * TEMP: Disabled for now
    */
-  public attack(gameState: GameState): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public attack(_gameState: GameState): void {
     // TEMP: Attacks disabled
     /*
     const now = performance.now();

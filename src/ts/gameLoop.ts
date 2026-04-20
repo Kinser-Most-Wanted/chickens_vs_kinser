@@ -22,19 +22,6 @@ function getSprite(src: string): HTMLImageElement {
   return spriteCache[src];
 }
 
-function getUnitSpriteSrc(type: string): string {
-  switch (type) {
-    case "exceeds":
-      return "./assets/exceedschicken.png";
-    case "tank":
-      return "./assets/tankchicken.png";
-    case "basic":
-    case "chicken":
-    default:
-      return "./assets/basicchicken.png";
-  }
-}
-
 function renderUnits(
   renderingContext: CanvasRenderingContext2D,
   gameState: GameState,

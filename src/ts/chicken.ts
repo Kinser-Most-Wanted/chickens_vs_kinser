@@ -17,6 +17,7 @@ export class Chicken extends Unit {
   /**
    * Chickens don't move. Override update to be a no-op.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public update(_gameState: GameState): void {
     // Chickens are stationary — nothing to update
   }
