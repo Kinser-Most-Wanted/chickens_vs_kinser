@@ -1,7 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { GridLanes } from "../src/ts/GridLanesCLass";
-import { attemptUnitPlacement } from "../src/ts/gameLoop";
+import {
+  attemptExceedsCollection,
+  attemptUnitPlacement,
+  collectExceeds,
+} from "../src/ts/gameLoop";
+import { CurrencyWallet } from "../src/ts/currency";
 import type { GameState, CanvasDimensions } from "../src/ts/types";
+import type { Chicken } from "../src/ts/shop";
 
 test.describe("Grid System Logic", () => {
   const dimensions: CanvasDimensions = { width: 800, height: 600 };
@@ -16,6 +22,12 @@ test.describe("Grid System Logic", () => {
   const totalGridHeight = lanes * cellHeight; // 500
   const xOffset = (dimensions.width - totalGridWidth) / 2; // (800 - 720) / 2 = 40
   const yOffset = (dimensions.height - totalGridHeight) / 2; // (600 - 500) / 2 = 50
+  const basicChicken: Chicken = {
+    id: "basic",
+    name: "Basic Chicken",
+    cost: 100,
+    image: "./assets/basicchicken.png",
+  };
 
   test("Grid Coordinate Mapping: getPixelCoordinates calculates center of cell", () => {
     // Test for lane 0, cell 0
@@ -70,15 +82,103 @@ test.describe("Grid System Logic", () => {
     const x = xOffset + cellWidth / 2;
     const y = yOffset + cellHeight / 2;
 
-    const result = attemptUnitPlacement(x, y, gameState);
+    const result = attemptUnitPlacement(x, y, gameState, basicChicken);
     
     expect(result).toBe(true);
     expect(gameState.units.length).toBe(1);
-    expect(gameState.units[0]).toEqual({
-      lane: 0,
-      cell: 0,
-      type: "chicken",
-    });
+    expect(gameState.units[0].getLane()).toBe(0);
+    expect(gameState.units[0].getCell()).toBe(0);
+    expect(gameState.units[0].getId()).toBe("basic-chicken");
+  });
+
+  test("Currency Logic: collectExceeds adds to the exceeds counter", () => {
+    const wallet = new CurrencyWallet({ exceeds: 0, eggs: 0 });
+
+    const result = collectExceeds(25, wallet);
+
+    expect(result).toBe(true);
+    expect(wallet.getBalance("exceeds")).toBe(25);
+    expect(wallet.getBalance("eggs")).toBe(0);
+  });
+
+  test("Currency Logic: attemptExceedsCollection collects a gameplay drop once", () => {
+    const wallet = new CurrencyWallet({ exceeds: 0, eggs: 0 });
+    const gameState: GameState = {
+      lastFrameTime: 0,
+      frameCount: 0,
+      units: [],
+      exceedsDrops: [
+        {
+          id: "test-drop",
+          pixelX: 100,
+          pixelY: 100,
+          amount: 25,
+          radius: 20,
+        },
+      ],
+    };
+
+    expect(attemptExceedsCollection(100, 100, gameState, wallet)).toBe(true);
+    expect(wallet.getBalance("exceeds")).toBe(25);
+    expect(gameState.exceedsDrops).toEqual([]);
+
+    expect(attemptExceedsCollection(100, 100, gameState, wallet)).toBe(false);
+    expect(wallet.getBalance("exceeds")).toBe(25);
+  });
+
+  test("Currency Logic: attemptUnitPlacement spends chicken cost on success", () => {
+    const wallet = new CurrencyWallet({ exceeds: 100, eggs: 0 });
+    const gameState: GameState = {
+      lastFrameTime: 0,
+      frameCount: 0,
+      grid: grid,
+      units: [],
+    };
+
+    const x = xOffset + cellWidth / 2;
+    const y = yOffset + cellHeight / 2;
+
+    const result = attemptUnitPlacement(x, y, gameState, basicChicken, wallet);
+
+    expect(result).toBe(true);
+    expect(wallet.getBalance("exceeds")).toBe(0);
+    expect(gameState.units.length).toBe(1);
+  });
+
+  test("Currency Logic: attemptUnitPlacement fails without enough exceeds", () => {
+    const wallet = new CurrencyWallet({ exceeds: 99, eggs: 0 });
+    const gameState: GameState = {
+      lastFrameTime: 0,
+      frameCount: 0,
+      grid: grid,
+      units: [],
+    };
+
+    const x = xOffset + cellWidth / 2;
+    const y = yOffset + cellHeight / 2;
+
+    const result = attemptUnitPlacement(x, y, gameState, basicChicken, wallet);
+
+    expect(result).toBe(false);
+    expect(wallet.getBalance("exceeds")).toBe(99);
+    expect(gameState.units.length).toBe(0);
+  });
+
+  test("Unit Placement Logic: attemptUnitPlacement ignores plain cell clicks without a dragged chicken", () => {
+    const gameState: GameState = {
+      lastFrameTime: 0,
+      frameCount: 0,
+      grid: grid,
+      units: [],
+    };
+
+    const x = xOffset + cellWidth / 2;
+    const y = yOffset + cellHeight / 2;
+
+    const result = attemptUnitPlacement(x, y, gameState);
+
+    expect(result).toBe(false);
+    expect(gameState.units.length).toBe(0);
   });
 
   test("Unit Placement Logic: attemptUnitPlacement failure on occupied cell", () => {
@@ -86,13 +186,19 @@ test.describe("Grid System Logic", () => {
       lastFrameTime: 0,
       frameCount: 0,
       grid: grid,
-      units: [{ lane: 1, cell: 1, type: "chicken" }],
+      units: [{
+        lane: 1,
+        cell: 1,
+        getLane: () => 1,
+        getCell: () => 1,
+        getType: () => "chicken" as const,
+      } as any],
     };
 
     const x = xOffset + cellWidth + cellWidth / 2;
     const y = yOffset + cellHeight + cellHeight / 2;
 
-    const result = attemptUnitPlacement(x, y, gameState);
+    const result = attemptUnitPlacement(x, y, gameState, basicChicken);
     
     expect(result).toBe(false);
     expect(gameState.units.length).toBe(1); // Length should not increase
@@ -106,7 +212,7 @@ test.describe("Grid System Logic", () => {
       units: [],
     };
 
-    const result = attemptUnitPlacement(0, 0, gameState); // Outside the 40px offset
+    const result = attemptUnitPlacement(0, 0, gameState, basicChicken); // Outside the 40px offset
     
     expect(result).toBe(false);
     expect(gameState.units.length).toBe(0);

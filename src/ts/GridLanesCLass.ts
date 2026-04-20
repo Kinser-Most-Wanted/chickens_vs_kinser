@@ -40,7 +40,7 @@ export class GridLanes {
    * to the player regarding valid placement boundaries.
    * @param renderingContext - The 2D context of the main game canvas.
    */
-  public render(renderingContext: CanvasRenderingContext2D): void {
+  public render(renderingContext: CanvasRenderingContext2D, coordX?: number, coordY?: number): void {
     renderingContext.save();
     
     // Draw grid background 
@@ -69,6 +69,20 @@ export class GridLanes {
       renderingContext.stroke();
     }
 
+    // Draw highlighter if mouse is over the grid
+    if (coordX !== undefined && coordY !== undefined) {
+      const coords = this.getGridCoordinates(coordX, coordY);
+      if (coords) {
+        renderingContext.fillStyle = "rgba(255, 255, 255, 0.3)";
+        renderingContext.fillRect(
+          this.xOffset + coords.cell * this.cellWidth,
+          this.yOffset + coords.lane * this.cellHeight,
+          this.cellWidth,
+          this.cellHeight
+        );
+      }
+    }
+
     renderingContext.restore();
   }
 
@@ -83,9 +97,9 @@ export class GridLanes {
   public getGridCoordinates(pixelX: number, pixelY: number): { lane: number; cell: number } | null {
     if (
       pixelX < this.xOffset || 
-      pixelX > this.xOffset + this.cells * this.cellWidth ||
+      pixelX >= this.xOffset + this.cells * this.cellWidth ||
       pixelY < this.yOffset || 
-      pixelY > this.yOffset + this.lanes * this.cellHeight
+      pixelY >= this.yOffset + this.lanes * this.cellHeight
     ) {
       return null;
     }

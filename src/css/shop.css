@@ -1,0 +1,245 @@
+/* =========================
+   LAYER SYSTEM (GLOBAL RULES)
+========================= */
+
+#game-canvas {
+  z-index: 1;
+}
+
+#uiLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Shop UI sits above UI layer */
+#top-bar,
+#shop-wrapper,
+#shop {
+  position: relative;
+  z-index: 20;
+}
+
+/* Main menu / in-game buttons ALWAYS on top */
+.canvas-button {
+  z-index: 999;
+}
+
+/* =========================
+   TOP BAR (CENTERED PvZ STYLE)
+========================= */
+
+#top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  background: #3b2f1c;
+  border-bottom: 4px solid #2a1f10;
+
+  box-sizing: border-box;
+}
+
+/* =========================
+   CURRENCY DISPLAY
+========================= */
+
+#currency {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #fff8c6;
+  font-size: 22px;
+
+  background: #5a3d1e;
+  padding: 6px 12px;
+
+  border-radius: 8px;
+  border: 2px solid #2a1f10;
+
+  margin-right: 20px;
+}
+
+/* =========================
+   SHOP WRAPPER
+========================= */
+
+#shop-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================
+   SHOP CONTAINER
+========================= */
+
+#shop {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+
+  padding: 6px;
+
+  background: #6b4f2a;
+  border-radius: 10px;
+  border: 3px solid #2a1f10;
+
+  flex-wrap: nowrap;
+
+  max-width: fit-content;
+}
+
+/* =========================
+   CHICKEN CARDS
+========================= */
+
+.card {
+  width: 80px;
+  height: 100px;
+
+  background: #d2b48c;
+  border-radius: 6px;
+
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  filter: brightness(1.08);
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.card img {
+  width: 60px;
+  height: 60px;
+}
+
+.cost {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+
+  background: black;
+  color: #ffd700;
+  font-size: 14px;
+
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.name {
+  font-size: 11px;
+  color: #222;
+  margin-top: 2px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Disabled state */
+.card.disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.7) brightness(0.75);
+}
+
+/* Prevent drag interference */
+.name,
+.cost {
+  pointer-events: none;
+}
+
+/* Ensure shop receives input */
+#shop-wrapper,
+#shop,
+.card {
+  pointer-events: auto;
+}
+
+/* =========================
+   FLOATING MENU BUTTON (outside canvas)
+========================= */
+
+.floating-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+
+  z-index: 9999;
+
+  padding: 12px 24px;
+
+  background-color: rgba(245, 158, 11, 0.9);
+  color: #111827;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 1rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.floating-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+/* =========================
+   CANVAS-ATTACHED BUTTON
+========================= */
+
+.canvas-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  z-index: 999;
+
+  padding: 8px 16px;
+
+  background-color: #f59e0b;
+  color: #111827;
+
+  border: none;
+  border-radius: 10px;
+
+  font-weight: 700;
+  cursor: pointer;
+
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.canvas-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}

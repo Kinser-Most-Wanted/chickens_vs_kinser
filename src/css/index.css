@@ -1,13 +1,361 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
 body {
   margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  background: #1a1a1a;
+  color: #f8fafc;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.home-page,
+.settings-page,
+.game-page {
+  background: transparent;
+}
+
+.app-shell {
+  width: 800px;
+  height: 400px;
+  min-height: 400px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Cards used by menu/settings */
+.menu-card,
+.game-shell {
+  background: rgba(15, 23, 42, 0.94);
+  border: 2px solid #334155;
+  border-radius: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.menu-card {
+  text-align: center;
+}
+
+.menu-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px 28px;
+}
+
+.settings-content {
+  justify-content: flex-start;
+  text-align: left;
+  padding-bottom: 20px;
+}
+
+.settings-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: #fde68a;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.menu-card h1 {
+  margin: 0 0 8px;
+  font-size: 2.4rem;
+  line-height: 1.05;
+}
+
+.subtitle {
+  margin: 0 0 32px;
+  color: #cbd5e1;
+  font-size: 1rem;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 18px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease;
+}
+
+.menu-button.primary {
+  background: #f59e0b;
+  color: #111827;
+}
+
+.menu-button.secondary {
+  background: #334155;
+  color: #f8fafc;
+}
+
+.menu-button:hover,
+.menu-button:focus-visible,
+.menu-link:hover,
+.menu-link:focus-visible {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.link-button {
+  width: 100%;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+}
+
+.settings-panel h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+/* PvZ-style main game container */
+.game-container {
+  position: relative;
+
+  width: 800px;
+  height: 400px;
+
+  margin: 20px auto;
+
+  overflow: hidden;
+
+  background: #0f0f0f;
+  border: 3px solid #2a1f10;
 }
 
 .game-container {
-  display: flex;
-  justify-content: center;
-  padding: 1rem;
+  margin: 20px auto;
+  border-radius: 24px;
 }
 
+/* UI layer sits above the canvas */
+#uiLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Canvas and shell positioning */
 canvas {
   display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 18px;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0));
+}
+
+.top-bar h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.menu-link {
+  color: #93c5fd;
+  text-decoration: none;
+  font-weight: 700;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease;
+}
+
+/* Match the merged HTML id */
+#game-canvas {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+  background: #000;
+
+  image-rendering: pixelated;
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0 32px;
+  text-align: left;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.setting-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.setting-stack input[type="text"] {
+  width: 100%;
+  border: 1px solid #475569;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.range-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.range-row input[type="range"] {
+  width: 100%;
+}
+
+.range-row output {
+  min-width: 44px;
+  text-align: right;
+  color: #fde68a;
+  font-weight: 700;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #334155;
+  background: rgba(15, 23, 42, 0.94);
+}
+
+.settings-actions .menu-button {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 12px;
+  }
+
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+  }
+}
+
+.floating-button {
+  position: fixed;        /* Always stays visible on screen */
+  top: 20px;              /* Distance from top of viewport */
+  right: 20px;            /* Distance from right of viewport */
+  z-index: 9999;          /* Above all other layers (shop, UI, canvas) */
+  padding: 12px 24px;
+  background-color: rgba(245, 158, 11, 0.9); /* match your primary menu button */
+  color: #111827;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.floating-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.canvas-button {
+  position: absolute;   /* position relative to container */
+  top: 10px;            /* distance from top of container */
+  right: 10px;          /* distance from right */
+  z-index: 10;          /* above UI and canvas */
+  padding: 8px 16px;
+  background-color: #f59e0b;
+  color: #111827;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.canvas-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
 }

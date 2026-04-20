@@ -3,15 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Chickens vs Kinser game" />
+  <meta name="description" content="Chickens vs Kinser main menu" />
   <title>Chickens vs Kinser</title>
+
   <link rel="stylesheet" href="./css/index.css" />
+  <link rel="stylesheet" href="./css/shop.css" />
 </head>
+
 <body>
-  <main class="game-container">
-    <canvas id="gameCanvas" aria-label="Game canvas"></canvas>
+  <main class="page home-page">
+    <section class="app-shell menu-card" aria-label="Main menu">
+      <div class="menu-content">
+        <p class="eyebrow">Barnyard Showdown</p>
+        <h1>Chickens vs Kinser</h1>
+        <p class="subtitle">Main Menu</p>
+
+        <div class="menu-buttons">
+          <button id="start-game-btn" class="menu-button primary" type="button">Start Game</button>
+          <button id="settings-btn" class="menu-button secondary" type="button">Settings</button>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <script type="module" src="./js/index.js"></script>
+  <script type="module" src="./js/mainMenu.js"></script>
 </body>
 </html>
