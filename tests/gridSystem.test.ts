@@ -86,11 +86,9 @@ test.describe("Grid System Logic", () => {
     
     expect(result).toBe(true);
     expect(gameState.units.length).toBe(1);
-    expect(gameState.units[0]).toEqual({
-      lane: 0,
-      cell: 0,
-      type: "basic",
-    });
+    expect(gameState.units[0].getLane()).toBe(0);
+    expect(gameState.units[0].getCell()).toBe(0);
+    expect(gameState.units[0].getId()).toBe("basic-chicken");
   });
 
   test("Currency Logic: collectExceeds adds to the exceeds counter", () => {
@@ -188,7 +186,13 @@ test.describe("Grid System Logic", () => {
       lastFrameTime: 0,
       frameCount: 0,
       grid: grid,
-      units: [{ lane: 1, cell: 1, type: "chicken" }],
+      units: [{
+        lane: 1,
+        cell: 1,
+        getLane: () => 1,
+        getCell: () => 1,
+        getType: () => "chicken" as const,
+      } as any],
     };
 
     const x = xOffset + cellWidth + cellWidth / 2;
