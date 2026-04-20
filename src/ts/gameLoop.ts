@@ -1,7 +1,12 @@
 import { GridLanes } from "./GridLanesCLass.js";
-import type { ExceedsDrop, GameState, Projectile } from "./types.js";
+import type {
+  ActiveLaneClear,
+  ExceedsDrop,
+  GameState,
+  Projectile,
+} from "./types.js";
 import { getEventCoordinates } from "./canvas.js";
-import { dragState } from "./dragState.js";
+import { dragState, notifyDragStateChanged } from "./dragState.js";
 import type { Chicken } from "./shop.js";
 import type { CurrencyWallet } from "./currency.js";
 import { Kinser } from "./kinser.js";
@@ -11,6 +16,15 @@ import { CHICKEN_CONFIGS } from "./unitData.js";
 import type { Unit } from "./unit.js";
 
 const spriteCache: Record<string, HTMLImageElement> = {};
+const HELICOPTER_SPRITE = "./assets/attackHeli.png";
+const UNIT_RENDER_SIZE = 60;
+const PROJECTILE_RENDER_SIZE = 30;
+const HELICOPTER_WIDTH = 88;
+const HELICOPTER_HEIGHT = 34;
+const HELICOPTER_MARKER_WIDTH = 72;
+const HELICOPTER_MARKER_HEIGHT = 42;
+const HELICOPTER_START_OFFSET = 60;
+const HELICOPTER_CLEAR_FRONT_OFFSET = 26;
 
 function getSprite(src: string): HTMLImageElement {
   if (!spriteCache[src]) {
@@ -33,7 +47,13 @@ function renderUnits(
     if (!pos) continue;
 
     const img = getSprite(unit.getImage());
-    renderingContext.drawImage(img, pos.pixelX - 30, pos.pixelY - 30, 60, 60);
+    renderingContext.drawImage(
+      img,
+      pos.pixelX - UNIT_RENDER_SIZE / 2,
+      pos.pixelY - UNIT_RENDER_SIZE / 2,
+      UNIT_RENDER_SIZE,
+      UNIT_RENDER_SIZE,
+    );
   }
 }
 
@@ -43,7 +63,13 @@ function renderProjectiles(
 ): void {
   for (const projectile of gameState.projectiles) {
     const img = getSprite(projectile.image);
-    renderingContext.drawImage(img, projectile.x - 15, projectile.y - 15, 30, 30);
+    renderingContext.drawImage(
+      img,
+      projectile.x - PROJECTILE_RENDER_SIZE / 2,
+      projectile.y - PROJECTILE_RENDER_SIZE / 2,
+      PROJECTILE_RENDER_SIZE,
+      PROJECTILE_RENDER_SIZE,
+    );
   }
 }
 
@@ -72,8 +98,160 @@ function renderDragPreview(
 
   renderingContext.save();
   renderingContext.globalAlpha = 0.6;
-  renderingContext.drawImage(img, pixel.pixelX - 30, pixel.pixelY - 30, 60, 60);
+  renderingContext.drawImage(
+    img,
+    pixel.pixelX - UNIT_RENDER_SIZE / 2,
+    pixel.pixelY - UNIT_RENDER_SIZE / 2,
+    UNIT_RENDER_SIZE,
+    UNIT_RENDER_SIZE,
+  );
   renderingContext.restore();
+}
+
+function renderNetPreview(
+  renderingContext: CanvasRenderingContext2D,
+  gameState: GameState,
+): void {
+  if (
+    dragState.activeTool !== "net" ||
+    !gameState.grid ||
+    gameState.coordX === undefined ||
+    gameState.coordY === undefined
+  ) {
+    return;
+  }
+
+  const coords = gameState.grid.getGridCoordinates(gameState.coordX, gameState.coordY);
+  if (!coords) return;
+
+  const pixel = gameState.grid.getPixelCoordinates(coords.lane, coords.cell);
+
+  renderingContext.save();
+  renderingContext.strokeStyle = "rgba(255, 255, 255, 0.9)";
+  renderingContext.lineWidth = 3;
+  renderingContext.beginPath();
+  renderingContext.arc(pixel.pixelX, pixel.pixelY, 26, 0, Math.PI * 2);
+  renderingContext.stroke();
+  renderingContext.beginPath();
+  renderingContext.moveTo(pixel.pixelX - 18, pixel.pixelY - 18);
+  renderingContext.lineTo(pixel.pixelX + 18, pixel.pixelY + 18);
+  renderingContext.moveTo(pixel.pixelX + 18, pixel.pixelY - 18);
+  renderingContext.lineTo(pixel.pixelX - 18, pixel.pixelY + 18);
+  renderingContext.stroke();
+  renderingContext.restore();
+}
+
+function renderLaneClearMarkers(
+  renderingContext: CanvasRenderingContext2D,
+  gameState: GameState,
+): void {
+  if (!gameState.grid) return;
+
+  const bounds = gameState.grid.getBounds();
+  const helicopterSprite = getSprite(HELICOPTER_SPRITE);
+
+  for (const laneClear of gameState.laneClears) {
+    if (!laneClear.armed) {
+      continue;
+    }
+
+    const laneCenter = gameState.grid.getPixelCoordinates(laneClear.lane, 0);
+    const markerX = bounds.x - HELICOPTER_MARKER_WIDTH - 12;
+    const markerY = laneCenter.pixelY - HELICOPTER_MARKER_HEIGHT / 2;
+
+    renderingContext.save();
+
+    if (helicopterSprite.complete && helicopterSprite.naturalWidth > 0) {
+      renderingContext.drawImage(
+        helicopterSprite,
+        markerX,
+        markerY,
+        HELICOPTER_MARKER_WIDTH,
+        HELICOPTER_MARKER_HEIGHT,
+      );
+    } else {
+      renderingContext.fillStyle = "#f5d067";
+      renderingContext.strokeStyle = "#fff6c7";
+      renderingContext.lineWidth = 2;
+      renderingContext.fillRect(
+        markerX,
+        markerY,
+        HELICOPTER_MARKER_WIDTH,
+        HELICOPTER_MARKER_HEIGHT,
+      );
+      renderingContext.strokeRect(
+        markerX,
+        markerY,
+        HELICOPTER_MARKER_WIDTH,
+        HELICOPTER_MARKER_HEIGHT,
+      );
+    }
+
+    renderingContext.restore();
+  }
+}
+
+function renderHelicopter(
+  renderingContext: CanvasRenderingContext2D,
+  laneClear: ActiveLaneClear,
+  gameState: GameState,
+): void {
+  if (!gameState.grid) return;
+
+  const laneCenter = gameState.grid.getPixelCoordinates(laneClear.lane, 0);
+  const bodyX = laneClear.x;
+  const bodyY = laneCenter.pixelY - HELICOPTER_HEIGHT / 2;
+  const helicopterSprite = getSprite(HELICOPTER_SPRITE);
+
+  if (helicopterSprite.complete && helicopterSprite.naturalWidth > 0) {
+    renderingContext.drawImage(
+      helicopterSprite,
+      bodyX,
+      bodyY,
+      HELICOPTER_WIDTH,
+      HELICOPTER_HEIGHT,
+    );
+    return;
+  }
+
+  renderingContext.save();
+  renderingContext.fillStyle = "#d4b44b";
+  renderingContext.strokeStyle = "#4a3a12";
+  renderingContext.lineWidth = 2;
+  renderingContext.fillRect(bodyX, bodyY, HELICOPTER_WIDTH, HELICOPTER_HEIGHT);
+  renderingContext.strokeRect(bodyX, bodyY, HELICOPTER_WIDTH, HELICOPTER_HEIGHT);
+
+  renderingContext.fillStyle = "#8ab4d6";
+  renderingContext.fillRect(bodyX + 12, bodyY + 7, 26, 12);
+
+  renderingContext.fillStyle = "#5c4a1f";
+  renderingContext.fillRect(bodyX + 74, bodyY + 12, 28, 6);
+  renderingContext.fillRect(bodyX + 10, bodyY + HELICOPTER_HEIGHT, 50, 4);
+  renderingContext.fillRect(bodyX + 48, bodyY + HELICOPTER_HEIGHT, 4, 10);
+
+  renderingContext.strokeStyle = "#1f1f1f";
+  renderingContext.beginPath();
+  renderingContext.moveTo(bodyX + 44, bodyY - 10);
+  renderingContext.lineTo(bodyX + 44, bodyY + 4);
+  renderingContext.moveTo(bodyX + 12, bodyY - 10);
+  renderingContext.lineTo(bodyX + 76, bodyY - 10);
+  renderingContext.moveTo(bodyX + 32, bodyY - 14);
+  renderingContext.lineTo(bodyX + 56, bodyY - 6);
+  renderingContext.moveTo(bodyX + 56, bodyY - 14);
+  renderingContext.lineTo(bodyX + 32, bodyY - 6);
+  renderingContext.stroke();
+  renderingContext.restore();
+}
+
+function renderLaneClears(
+  renderingContext: CanvasRenderingContext2D,
+  gameState: GameState,
+): void {
+  renderLaneClearMarkers(renderingContext, gameState);
+
+  for (const laneClear of gameState.activeLaneClears) {
+    renderHelicopter(renderingContext, laneClear, gameState);
+  }
 }
 
 function resetDragState(): void {
@@ -81,6 +259,10 @@ function resetDragState(): void {
   dragState.chicken = null;
   dragState.offsetX = 0;
   dragState.offsetY = 0;
+  if (dragState.activeTool !== "net") {
+    dragState.activeTool = "place";
+  }
+  notifyDragStateChanged();
 }
 
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
@@ -92,13 +274,21 @@ export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
     radius: 24,
   };
 
+  const grid = new GridLanes(1, 9, { width: canvas.width, height: canvas.height });
+  const laneClears = Array.from({ length: grid.getLaneCount() }, (_, lane) => ({
+    lane,
+    armed: true,
+  }));
+
   return {
     lastFrameTime: 0,
     frameCount: 0,
-    grid: new GridLanes(1, 9, { width: canvas.width, height: canvas.height }),
+    grid,
     units: [],
     projectiles: [],
     exceedsDrops: [startingDrop],
+    laneClears,
+    activeLaneClears: [],
   };
 }
 
@@ -141,15 +331,15 @@ function checkProjectileCollisions(gameState: GameState): void {
         const unitPos = gameState.grid?.getPixelCoordinates(unit.getLane(), unit.getCell());
         if (!unitPos) continue;
         
-        const projectileLeft = projectile.x - 15;
-        const projectileRight = projectile.x + 15;
-        const projectileTop = projectile.y - 15;
-        const projectileBottom = projectile.y + 15;
+        const projectileLeft = projectile.x - PROJECTILE_RENDER_SIZE / 2;
+        const projectileRight = projectile.x + PROJECTILE_RENDER_SIZE / 2;
+        const projectileTop = projectile.y - PROJECTILE_RENDER_SIZE / 2;
+        const projectileBottom = projectile.y + PROJECTILE_RENDER_SIZE / 2;
         
-        const unitLeft = unitPos.pixelX - 30;
-        const unitRight = unitPos.pixelX + 30;
-        const unitTop = unitPos.pixelY - 30;
-        const unitBottom = unitPos.pixelY + 30;
+        const unitLeft = unitPos.pixelX - UNIT_RENDER_SIZE / 2;
+        const unitRight = unitPos.pixelX + UNIT_RENDER_SIZE / 2;
+        const unitTop = unitPos.pixelY - UNIT_RENDER_SIZE / 2;
+        const unitBottom = unitPos.pixelY + UNIT_RENDER_SIZE / 2;
         
         if (projectileRight > unitLeft && projectileLeft < unitRight &&
             projectileBottom > unitTop && projectileTop < unitBottom) {
@@ -165,8 +355,80 @@ function checkProjectileCollisions(gameState: GameState): void {
 }
 
 function triggerProjectileDamage(unit: Unit, projectile: Projectile): void {
-  // TODO: Implement actual damage logic
-  console.log(`Projectile ${projectile.id} hit ${unit.getType()} ${unit.getId()} for ${projectile.damage} damage`);
+  unit.takeDamage(projectile.damage);
+}
+
+function triggerLaneClear(lane: number, gameState: GameState): void {
+  if (!gameState.grid) return;
+
+  const laneClear = gameState.laneClears.find((candidate) => candidate.lane === lane);
+  if (!laneClear?.armed) return;
+
+  laneClear.armed = false;
+  const bounds = gameState.grid.getBounds();
+  gameState.activeLaneClears.push({
+    lane,
+    x: bounds.x - HELICOPTER_START_OFFSET,
+    speed: 8,
+  });
+}
+
+function updateLaneClears(gameState: GameState): void {
+  const grid = gameState.grid;
+  if (!grid) return;
+
+  const bounds = grid.getBounds();
+
+  gameState.activeLaneClears = gameState.activeLaneClears.filter((laneClear) => {
+    laneClear.x += laneClear.speed;
+    const clearFront = laneClear.x + HELICOPTER_WIDTH - HELICOPTER_CLEAR_FRONT_OFFSET;
+
+    for (const unit of gameState.units) {
+      if (unit.getType() !== "kinser" || unit.getLane() !== laneClear.lane) {
+        continue;
+      }
+
+      const unitPosition = grid.getPixelCoordinates(unit.getLane(), unit.getCell());
+      if (unitPosition.pixelX <= clearFront) {
+        unit.takeDamage(unit.getHealth());
+      }
+    }
+
+    return laneClear.x <= bounds.x + bounds.width + HELICOPTER_WIDTH;
+  });
+}
+
+function checkLaneClearTriggers(gameState: GameState): void {
+  for (const unit of gameState.units) {
+    if (unit.getType() !== "kinser") continue;
+
+    if (unit.getCell() <= 0) {
+      triggerLaneClear(unit.getLane(), gameState);
+    }
+  }
+}
+
+export function attemptChickenRemoval(
+  pixelX: number,
+  pixelY: number,
+  gameState: GameState,
+): boolean {
+  if (!gameState.grid) return false;
+
+  const coords = gameState.grid.getGridCoordinates(pixelX, pixelY);
+  if (!coords) return false;
+
+  const chickenIndex = gameState.units.findIndex(
+    (unit) =>
+      unit.getType() === "chicken" &&
+      unit.getLane() === coords.lane &&
+      unit.getCell() === coords.cell,
+  );
+
+  if (chickenIndex < 0) return false;
+
+  gameState.units.splice(chickenIndex, 1);
+  return true;
 }
 
 export function updateGameState(
@@ -183,6 +445,9 @@ export function updateGameState(
 
   // Check projectile collisions
   checkProjectileCollisions(gameState);
+
+  checkLaneClearTriggers(gameState);
+  updateLaneClears(gameState);
 
   // Remove projectiles that are off-screen
   gameState.projectiles = gameState.projectiles.filter(projectile => projectile.x < 1000); // Assuming canvas width ~800, remove when far off right
@@ -225,10 +490,11 @@ export function renderFrame(
   }
 
   renderUnits(renderingContext, gameState);
+  renderLaneClears(renderingContext, gameState);
   renderProjectiles(renderingContext, gameState);
   renderExceedsDrops(renderingContext, gameState);
   renderDragPreview(renderingContext, gameState);
-  renderDragPreview(renderingContext, gameState);
+  renderNetPreview(renderingContext, gameState);
 
   renderingContext.fillStyle = "#ffffff";
   renderingContext.font = "24px Arial";
@@ -317,6 +583,21 @@ export function startGameLoop(
   canvas.addEventListener("pointerdown", (event) => {
     updatePointerPosition(event);
 
+    if (dragState.activeTool === "net") {
+      const removedChicken = attemptChickenRemoval(
+        gameState.coordX!,
+        gameState.coordY!,
+        gameState,
+      );
+
+      if (removedChicken) {
+        dragState.activeTool = "place";
+        notifyDragStateChanged();
+      }
+
+      return;
+    }
+
     if (!dragState.isDragging) {
       attemptExceedsCollection(
         gameState.coordX!,
@@ -360,10 +641,12 @@ export function startGameLoop(
   function runFrame(currentTime: number): void {
     updateGameState(gameState, currentTime);
 
-    // Update and attack with units
-    gameState.units.forEach(unit => unit.update(gameState));
-    gameState.units.forEach(unit => unit.attack(gameState));
-    gameState.units = gameState.units.filter(unit => unit.isAlive());
+    gameState.units = gameState.units.filter((unit) => unit.isAlive());
+
+    // Update and attack with living units only.
+    gameState.units.forEach((unit) => unit.update(gameState));
+    gameState.units.forEach((unit) => unit.attack(gameState));
+    gameState.units = gameState.units.filter((unit) => unit.isAlive());
 
     renderFrame(canvas, renderingContext, gameState);
     window.requestAnimationFrame(runFrame);
