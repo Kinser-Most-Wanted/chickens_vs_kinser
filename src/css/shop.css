@@ -77,6 +77,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 12px;
 }
 
 /* =========================
@@ -97,6 +98,44 @@
   flex-wrap: nowrap;
 
   max-width: fit-content;
+}
+
+.tool-card {
+  min-width: 72px;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  box-shadow: none;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tool-card-image {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.tool-card:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.tool-card.selected-tool,
+.card.selected-tool {
+  box-shadow: 0 0 0 4px rgba(255, 245, 157, 0.6);
+  filter: brightness(1.08);
 }
 
 /* =========================
