@@ -1,8 +1,12 @@
+// mainMenu.ts
+
+// --- Navigation helper ---
 function navigateToPage(path: string): void {
   window.location.href = path;
 }
 
-function initMainMenu(): void {
+// --- Main Menu initialization for index.html ---
+function initIndexMenu(): void {
   const startGameButton = document.getElementById("start-game-btn");
   const settingsButton = document.getElementById("settings-btn");
 
@@ -15,4 +19,29 @@ function initMainMenu(): void {
   });
 }
 
-window.addEventListener("DOMContentLoaded", initMainMenu);
+// --- Game Menu initialization for game.html ---
+function initGameMenu(): void {
+  const mainMenuBtn = document.getElementById("mainMenuBtn");
+
+  mainMenuBtn?.addEventListener("click", () => {
+    const confirmLeave = confirm(
+      "Are you sure you want to return to the main menu? Unsaved progress will be lost."
+    );
+    if (confirmLeave) {
+      navigateToPage("./index.html");
+    }
+  });
+}
+
+// --- Auto-detect page and initialize ---
+window.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("start-game-btn")) {
+    // index.html detected
+    initIndexMenu();
+  }
+
+  if (document.getElementById("mainMenuBtn")) {
+    // game.html detected
+    initGameMenu();
+  }
+});
