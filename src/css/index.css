@@ -311,3 +311,25 @@ canvas {
     flex-direction: column;
   }
 }
+
+.floating-button {
+  position: fixed;        /* Always stays visible on screen */
+  top: 20px;              /* Distance from top of viewport */
+  right: 20px;            /* Distance from right of viewport */
+  z-index: 9999;          /* Above all other layers (shop, UI, canvas) */
+  padding: 12px 24px;
+  background-color: rgba(245, 158, 11, 0.9); /* match your primary menu button */
+  color: #111827;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.floating-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
