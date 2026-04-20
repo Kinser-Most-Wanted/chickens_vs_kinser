@@ -11,20 +11,18 @@
 </head>
 <body>
   <main class="page game-page">
-    <section
-      class="app-shell game-shell game-container"
-      id="gameContainer"
-      aria-label="Game screen"
-    >
-
-      <!-- UI LAYER (PvZ-style overlay system) -->
+    <section class="app-shell game-shell game-container" id="gameContainer">
+    
+      <div class="canvas-wrapper">
+        <canvas id="game-canvas" aria-label="Game canvas"></canvas>
+    
+        <button id="mainMenuBtn" class="canvas-button">
+          Main Menu
+        </button>
+      </div>
+    
       <div id="uiLayer"></div>
-
-      <!-- GAME CANVAS (grid + gameplay rendering) -->
-      <canvas id="game-canvas" aria-label="Game canvas"></canvas>
-
-      <!-- Main menu button -->
-      <button id="mainMenuBtn" class="floating-button">Main Menu</button>
+    
     </section>
   </main>
 
