@@ -1,4 +1,5 @@
 import { GridLanes } from "./GridLanesCLass.js";
+import { Unit } from "./unit.js";
 
 export type SupportedCanvasSize = "small" | "large" | "portrait";
 
@@ -12,12 +13,6 @@ export interface GridConfig {
   cells: number;
 }
 
-export interface Unit {
-  lane: number;
-  cell: number;
-  type: string;
-}
-
 export interface ExceedsDrop {
   id: string;
   pixelX: number;
@@ -26,11 +21,22 @@ export interface ExceedsDrop {
   radius: number;
 }
 
+export interface Projectile {
+  id: string;
+  image: string;
+  lane: number;
+  x: number;
+  y: number;
+  speed: number;
+  damage: number;
+}
+
 export interface GameState {
   lastFrameTime: number;
   frameCount: number;
   grid?: GridLanes;
   units: Unit[];
+  projectiles: Projectile[];
   exceedsDrops?: ExceedsDrop[];
   coordX?: number;
   coordY?: number;
