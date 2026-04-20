@@ -1,13 +1,29 @@
 /* =========================
-   UI LAYER CONTAINER
+   LAYER SYSTEM (GLOBAL RULES)
 ========================= */
+
+#game-canvas {
+  z-index: 1;
+}
 
 #uiLayer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  inset: 0;
   z-index: 10;
+  pointer-events: none;
+}
+
+/* Shop UI sits above UI layer */
+#top-bar,
+#shop-wrapper,
+#shop {
+  position: relative;
+  z-index: 20;
+}
+
+/* Main menu / in-game buttons ALWAYS on top */
+.canvas-button {
+  z-index: 999;
 }
 
 /* =========================
@@ -50,11 +66,11 @@
   border-radius: 8px;
   border: 2px solid #2a1f10;
 
-  margin-right: 20px; /* separates from shop */
+  margin-right: 20px;
 }
 
 /* =========================
-   SHOP WRAPPER (CENTER CORE)
+   SHOP WRAPPER
 ========================= */
 
 #shop-wrapper {
@@ -64,7 +80,7 @@
 }
 
 /* =========================
-   SHOP CONTAINER (DYNAMIC ROW)
+   SHOP CONTAINER
 ========================= */
 
 #shop {
@@ -107,11 +123,16 @@
   user-select: none;
   touch-action: none;
 
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 .card:hover {
   transform: scale(1.05);
+  filter: brightness(1.08);
+}
+
+.card:active {
+  transform: scale(0.98);
 }
 
 .card img {
@@ -140,41 +161,85 @@
   font-weight: bold;
 }
 
+/* Disabled state */
+.card.disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.7) brightness(0.75);
+}
 
-/* =========================
-   INTERACTION PATCH (DO NOT CHANGE VISUALS)
-   ========================= */
+/* Prevent drag interference */
+.name,
+.cost {
+  pointer-events: none;
+}
 
-/* ensures shop still receives input */
+/* Ensure shop receives input */
 #shop-wrapper,
 #shop,
 .card {
   pointer-events: auto;
 }
 
-/* hover enhancement (keeps your original scale behavior but stabilizes it) */
-.card {
-  transition: transform 0.15s ease, filter 0.15s ease;
+/* =========================
+   FLOATING MENU BUTTON (outside canvas)
+========================= */
+
+.floating-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+
+  z-index: 9999;
+
+  padding: 12px 24px;
+
+  background-color: rgba(245, 158, 11, 0.9);
+  color: #111827;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 1rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  transition: transform 120ms ease, filter 120ms ease;
 }
 
-/* preserves your original hover but makes it smoother + drag-ready */
-.card:hover {
-  transform: scale(1.05);
-  filter: brightness(1.08);
+.floating-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
 }
 
-/* click feedback (needed for drag start state later) */
-.card:active {
-  transform: scale(0.98);
+/* =========================
+   CANVAS-ATTACHED BUTTON
+========================= */
+
+.canvas-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  z-index: 999;
+
+  padding: 8px 16px;
+
+  background-color: #f59e0b;
+  color: #111827;
+
+  border: none;
+  border-radius: 10px;
+
+  font-weight: 700;
+  cursor: pointer;
+
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 120ms ease, filter 120ms ease;
 }
 
-.card.disabled {
-  cursor: not-allowed;
-  filter: grayscale(0.7) brightness(0.75);
-}
-
-/* prevents text from blocking drag/hover detection */
-.name,
-.cost {
-  pointer-events: none;
+.canvas-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
 }
