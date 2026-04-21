@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { GridLanes } from "../src/ts/GridLanesCLass";
+import { GridLanes } from "../src/ts/GridLanes";
 import {
   attemptExceedsCollection,
   attemptUnitPlacement,
@@ -13,7 +13,12 @@ test.describe("Grid System Logic", () => {
   const dimensions: CanvasDimensions = { width: 800, height: 600 };
   const lanes = 5;
   const cells = 9;
-  const grid = new GridLanes(lanes, cells, dimensions);
+  const grid = new GridLanes(lanes, cells, dimensions, {
+    left: 40,
+    right: 40,
+    top: 50,
+    bottom: 50,
+  });
 
   // Constants from GridLanesCLass.ts
   const cellWidth = 80;

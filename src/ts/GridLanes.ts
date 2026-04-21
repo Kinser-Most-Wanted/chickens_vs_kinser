@@ -6,6 +6,13 @@ import type { CanvasDimensions } from "./types.js";
  * Separates the abstract grid state from the visual canvas resolution,
  * ensuring entities can snap consistently to lanes and cells regardless of screen size.
  */
+export interface GridMargins {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 export class GridLanes {
   private lanes: number;
   private cells: number;
@@ -16,22 +23,26 @@ export class GridLanes {
   private xOffset: number;
   private yOffset: number;
 
-  constructor(lanes: number, cells: number, dimensions: CanvasDimensions) {
+  constructor(
+    lanes: number,
+    cells: number,
+    dimensions: CanvasDimensions,
+    margins: GridMargins = { top: 0, bottom: 0, left: 0, right: 0 }
+  ) {
     this.lanes = lanes;
     this.cells = cells;
-    this.width = dimensions.width;
-    this.height = dimensions.height;
     
-    // Set fixed dimensions for cells to allow centering the grid
-    this.cellWidth = 80;
-    this.cellHeight = 100;
+    // Calculate available grid dimensions after margins
+    this.width = dimensions.width - margins.left - margins.right;
+    this.height = dimensions.height - margins.top - margins.bottom;
     
-    // Center the grid horizontally and vertically
-    const totalGridWidth = this.cells * this.cellWidth;
-    const totalGridHeight = this.lanes * this.cellHeight;
-    
-    this.xOffset = (this.width - totalGridWidth) / 2;
-    this.yOffset = (this.height - totalGridHeight) / 2;
+    // Set offsets
+    this.xOffset = margins.left;
+    this.yOffset = margins.top;
+
+    // Calculate cell dimensions to fill the grid area
+    this.cellWidth = this.width / this.cells;
+    this.cellHeight = this.height / this.lanes;
   }
 
   /**
