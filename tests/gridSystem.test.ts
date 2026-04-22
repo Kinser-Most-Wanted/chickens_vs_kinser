@@ -4,10 +4,14 @@ import {
   attemptExceedsCollection,
   attemptUnitPlacement,
   collectExceeds,
+  createInitialGameState,
+  resolveEndOfLaneKinsers,
 } from "../src/ts/gameLoop";
 import { CurrencyWallet } from "../src/ts/currency";
 import type { GameState, CanvasDimensions } from "../src/ts/types";
 import type { Chicken } from "../src/ts/shop";
+import { Kinser } from "../src/ts/kinser";
+import { KINSER_CONFIGS } from "../src/ts/unitData";
 
 test.describe("Grid System Logic", () => {
   const dimensions: CanvasDimensions = { width: 800, height: 600 };
@@ -221,5 +225,50 @@ test.describe("Grid System Logic", () => {
     
     expect(result).toBe(false);
     expect(gameState.units.length).toBe(0);
+  });
+
+  test("Lane Clear Logic: end-of-lane kinser triggers an armed lane clear before game over", () => {
+    const gameState = createInitialGameState({
+      width: 800,
+      height: 400,
+    } as HTMLCanvasElement);
+    gameState.units.push(
+      new Kinser({ ...KINSER_CONFIGS.basic, lane: 0, cell: 0 }),
+    );
+
+    const shouldEndGame = resolveEndOfLaneKinsers(gameState);
+
+    expect(shouldEndGame).toBe(false);
+    expect(gameState.laneClears[0].armed).toBe(false);
+    expect(gameState.activeLaneClears).toEqual([
+      expect.objectContaining({ lane: 0 }),
+    ]);
+  });
+
+  test("Lane Clear Logic: end-of-lane kinser ends the game when no lane clear remains", () => {
+    const gameState = createInitialGameState({
+      width: 800,
+      height: 400,
+    } as HTMLCanvasElement);
+    gameState.laneClears[0].armed = false;
+    gameState.units.push(
+      new Kinser({ ...KINSER_CONFIGS.basic, lane: 0, cell: 0 }),
+    );
+
+    expect(resolveEndOfLaneKinsers(gameState)).toBe(true);
+  });
+
+  test("Lane Clear Logic: active lane clear prevents game over while it crosses the lane", () => {
+    const gameState = createInitialGameState({
+      width: 800,
+      height: 400,
+    } as HTMLCanvasElement);
+    gameState.laneClears[0].armed = false;
+    gameState.activeLaneClears.push({ lane: 0, x: 100, speed: 8 });
+    gameState.units.push(
+      new Kinser({ ...KINSER_CONFIGS.basic, lane: 0, cell: 0 }),
+    );
+
+    expect(resolveEndOfLaneKinsers(gameState)).toBe(false);
   });
 });

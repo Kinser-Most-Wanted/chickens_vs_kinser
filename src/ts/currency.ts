@@ -41,6 +41,11 @@ export class CurrencyWallet {
     return { ...this.balances };
   }
 
+  public reset(balances: Partial<CurrencyBalances> = DEFAULT_BALANCES): void {
+    this.balances = normalizeBalances(balances, DEFAULT_BALANCES);
+    this.emitChange();
+  }
+
   public canAfford(type: CurrencyType, amount: number): boolean {
     return (
       Number.isFinite(amount) && amount >= 0 && this.balances[type] >= amount
