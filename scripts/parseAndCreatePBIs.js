@@ -1,197 +1,260 @@
-const fs = require('fs');
-const { execSync } = require('child_process');
+const fs = require("fs");
+const path = require("path");
+const { execSync } = require("child_process");
 const { Octokit } = require("@octokit/rest");
 
 // -----------------------------
 // GitHub Setup
 // -----------------------------
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
+  auth: process.env.GITHUB_TOKEN,
 });
 
-const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
 
 // -----------------------------
-// Get Changed .md Files in /pbis/
+// Config
 // -----------------------------
+const PBI_DIR = "pbis";
+const DEFAULT_LABELS = ["PBI"];
+
+// -----------------------------
+// Helpers
+// -----------------------------
+function safeReadFile(filePath) {
+  try {
+    return fs.readFileSync(filePath, "utf8");
+  } catch (err) {
+    console.error(`Failed to read file: ${filePath}`, err.message);
+    return null;
+  }
+}
+
 function getChangedMarkdownFiles() {
   try {
-    const output = execSync("git diff --name-only HEAD^ HEAD")
-      .toString()
-      .split('\n')
+    const output = execSync("git diff --name-only HEAD^ HEAD", { encoding: "utf8" })
+      .split("\n")
+      .map((s) => s.trim())
       .filter(Boolean);
 
-    return output.filter(file =>
-      file.startsWith('pbis/') && file.endsWith('.md')
+    const changed = output.filter(
+      (file) => file.startsWith(`${PBI_DIR}/`) && file.endsWith(".md")
     );
 
+    if (changed.length > 0) return changed;
   } catch (err) {
-    console.warn("Fallback: no previous commit, scanning all pbis/*.md");
-
-    return fs.readdirSync('pbis')
-      .filter(file => file.endsWith('.md'))
-      .map(file => `pbis/${file}`);
+    console.warn("Could not diff HEAD^ HEAD. Falling back to scanning all pbis/*.md");
   }
+
+  if (!fs.existsSync(PBI_DIR)) return [];
+
+  return fs
+    .readdirSync(PBI_DIR)
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => path.join(PBI_DIR, file));
 }
 
-// -----------------------------
-// Extract Field Helper
-// -----------------------------
-function extractField(block, fieldName) {
-  const regex = new RegExp(`${fieldName}:\\s*(.*)`);
-  const match = block.match(regex);
-  return match ? match[1].trim() : '';
+function extractFrontmatter(content) {
+  const match = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+  if (!match) return {};
+
+  const obj = {};
+  const lines = match[1].split("\n");
+
+  for (const line of lines) {
+    const kv = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.+)$/);
+    if (kv) {
+      obj[kv[1].trim().toLowerCase()] = kv[2].trim();
+    }
+  }
+
+  return obj;
 }
 
-// -----------------------------
-// Priority → Suffix
-// -----------------------------
-function getPrioritySuffix(priority) {
-  if (!priority) return '';
-
-  const p = priority.toLowerCase();
-
-  if (p === 'high') return 'H';
-  if (p === 'medium') return 'M';
-  if (p === 'low') return 'L';
-
-  return '';
+function stripFrontmatter(content) {
+  return content.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "");
 }
 
-// -----------------------------
-// Parse PBIs from Markdown
-// -----------------------------
-function parsePBIs(content) {
-  // ✅ FIXED: split based on actual format
-  const blocks = content.split(/\n\s*Priority:/).slice(1);
+function detectSprint(filePath, content) {
+  const frontmatter = extractFrontmatter(content);
 
-  return blocks.map(block => {
-    const priorityMatch = block.match(/(High|Medium|Low)/);
-    const priority = priorityMatch ? priorityMatch[1] : '';
+  if (frontmatter.sprint) {
+    const sprintNum = String(frontmatter.sprint).match(/\d+/);
+    if (sprintNum) return sprintNum[0];
+  }
 
-    const title = extractField(block, "Title");
+  const contentMatch = content.match(/\bSprint\s*#?\s*(\d+)\b/i);
+  if (contentMatch) return contentMatch[1];
 
-    const userStoryMatch = block.match(/User Story:\s*([\s\S]*?)\n\s*\n/);
-    const user_story = userStoryMatch ? userStoryMatch[1].trim() : '';
+  const fileName = path.basename(filePath);
+  const fileMatch = fileName.match(/sprint[-_\s]?(\d+)/i);
+  if (fileMatch) return fileMatch[1];
 
-    const acceptanceMatch = block.match(/Acceptance Criteria:\s*([\s\S]*?)(---|$)/);
-
-    const acceptance_criteria = acceptanceMatch
-      ? acceptanceMatch[1]
-          .split('\n')
-          .filter(line => line.trim().startsWith('-'))
-          .map(line => line.replace('-', '').trim())
-      : [];
-
-    return {
-      title,
-      priority,
-      user_story,
-      acceptance_criteria
-    };
-  }).filter(pbi => pbi.title);
+  return null;
 }
 
-// -----------------------------
-// Format Issue Body
-// -----------------------------
-function formatToTemplate(pbi) {
-  return `### pbi
-
-**Priority:** ${pbi.priority}
-
-**User Story:**
-${pbi.user_story}
-
-**Acceptance Criteria:**
-${pbi.acceptance_criteria.map(c => `- ${c}`).join('\n')}
-`;
+function normalizeTitle(title) {
+  return title
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^[-:#\s]+/, "")
+    .replace(/[.:;\s]+$/, "");
 }
 
-// -----------------------------
-// Get Existing Issues
-// -----------------------------
-async function getExistingIssues() {
-  const issues = await octokit.issues.listForRepo({
-    owner,
-    repo,
-    state: 'all',
-    per_page: 100
-  });
+function splitPbis(content) {
+  const clean = stripFrontmatter(content).replace(/\r\n/g, "\n");
 
-  return issues.data.map(issue => issue.title);
-}
+  // Preferred split: "## PBI 1: Title" or "### PBI 1 - Title"
+  const headingRegex = /^(##+)\s*PBI\s*(\d+)\s*[:\-]?\s*(.+)$/gim;
+  const matches = [...clean.matchAll(headingRegex)];
 
-// -----------------------------
-// Create Issues
-// -----------------------------
-async function createIssues(pbis) {
-  const existingTitles = await getExistingIssues();
+  if (matches.length > 0) {
+    const pbis = [];
 
-  for (const pbi of pbis) {
-    const suffix = getPrioritySuffix(pbi.priority);
+    for (let i = 0; i < matches.length; i++) {
+      const start = matches[i].index;
+      const end = i + 1 < matches.length ? matches[i + 1].index : clean.length;
+      const rawBlock = clean.slice(start, end).trim();
 
-    // ✅ FIXED: prevent duplicate suffix
-    const hasSuffix = / - [HML]$/i.test(pbi.title);
-    const title = hasSuffix
-      ? pbi.title
-      : (suffix ? `${pbi.title} - ${suffix}` : pbi.title);
-
-    if (!title) {
-      console.log("Skipping PBI with no title.");
-      continue;
+      const title = normalizeTitle(`PBI ${matches[i][2]}: ${matches[i][3]}`);
+      pbis.push({ title, body: rawBlock });
     }
 
-    const exists = existingTitles.some(existing =>
-      existing.trim().toLowerCase() === title.trim().toLowerCase()
-    );
+    return pbis;
+  }
 
-    if (exists) {
-      console.log(`Skipping duplicate: ${title}`);
-      continue;
-    }
+  // Fallback split: horizontal rule sections
+  const hrSections = clean
+    .split(/\n-{3,}\n|\n\*{3,}\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-    try {
-      await octokit.issues.create({
+  const pbiLikeSections = hrSections
+    .map((section) => {
+      const firstLine = section.split("\n")[0]?.trim() || "";
+      if (/PBI\s*\d+/i.test(firstLine)) {
+        return {
+          title: normalizeTitle(firstLine),
+          body: section,
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  return pbiLikeSections;
+}
+
+async function ensureLabelExists(labelName, color = "1D76DB", description = "") {
+  try {
+    await octokit.issues.getLabel({
+      owner,
+      repo,
+      name: labelName,
+    });
+    console.log(`Label already exists: ${labelName}`);
+  } catch (err) {
+    if (err.status === 404) {
+      await octokit.issues.createLabel({
         owner,
         repo,
-        title,
-        body: formatToTemplate(pbi),
-        labels: [
-          "PBI",
-          ...(pbi.priority ? [pbi.priority] : [])
-        ]
+        name: labelName,
+        color,
+        description: description || undefined,
       });
-
-      console.log(`Created issue: ${title}`);
-    } catch (err) {
-      console.error(`Error creating issue: ${title}`, err);
+      console.log(`Created label: ${labelName}`);
+    } else {
+      throw err;
     }
   }
 }
 
+async function findExistingIssueByTitle(title) {
+  const query = `repo:${owner}/${repo} is:issue in:title "${title}"`;
+  const result = await octokit.search.issuesAndPullRequests({
+    q: query,
+    per_page: 10,
+  });
+
+  return result.data.items.find(
+    (item) => item.title.trim().toLowerCase() === title.trim().toLowerCase()
+  );
+}
+
+async function createIssueWithLabels(title, body, labels) {
+  const existing = await findExistingIssueByTitle(title);
+
+  if (existing) {
+    console.log(`Issue already exists, skipping: ${title} (#${existing.number})`);
+    return existing;
+  }
+
+  const created = await octokit.issues.create({
+    owner,
+    repo,
+    title,
+    body,
+    labels,
+  });
+
+  console.log(`Created issue: ${title} (#${created.data.number})`);
+  return created.data;
+}
+
 // -----------------------------
-// Main Execution
+// Main
 // -----------------------------
-(async () => {
+async function main() {
   const files = getChangedMarkdownFiles();
 
   if (files.length === 0) {
-    console.log("No relevant .md files changed.");
+    console.log("No changed markdown files found in /pbis");
     return;
   }
 
   for (const file of files) {
-    console.log(`Processing file: ${file}`);
+    console.log(`\nProcessing file: ${file}`);
+    const content = safeReadFile(file);
 
-    const content = fs.readFileSync(file, 'utf-8');
-    const pbis = parsePBIs(content);
+    if (!content) continue;
+
+    const sprint = detectSprint(file, content);
+    const sprintLabel = sprint ? `Sprint ${sprint}` : null;
+
+    // Ensure labels exist before creating issues
+    for (const label of DEFAULT_LABELS) {
+      await ensureLabelExists(label, "5319E7", "Product Backlog Item");
+    }
+
+    if (sprintLabel) {
+      await ensureLabelExists(
+        sprintLabel,
+        "0E8A16",
+        `Issues associated with ${sprintLabel}`
+      );
+    } else {
+      console.warn(`No sprint detected for ${file}. Issues will only get default labels.`);
+    }
+
+    const pbis = splitPbis(content);
 
     if (pbis.length === 0) {
-      console.log(`No PBIs found in ${file}`);
+      console.warn(`No PBIs detected in ${file}`);
       continue;
     }
 
-    await createIssues(pbis);
+    for (const pbi of pbis) {
+      const labels = [...DEFAULT_LABELS];
+      if (sprintLabel) labels.push(sprintLabel);
+
+      await createIssueWithLabels(pbi.title, pbi.body, labels);
+    }
   }
-})();
+}
+
+main().catch((err) => {
+  console.error("Script failed:", err);
+  process.exit(1);
+});
