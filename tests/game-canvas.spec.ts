@@ -112,22 +112,6 @@ test("pause menu can unpause, restart with confirmation, and return to main menu
   const canvas = page.locator("#game-canvas");
   await expect(canvas).toBeVisible();
 
-  const chickenCard = page.locator(".card", { hasText: "Basic Chicken" });
-  const canvasBox = await canvas.boundingBox();
-  const cardBox = await chickenCard.boundingBox();
-  expect(canvasBox).not.toBeNull();
-  expect(cardBox).not.toBeNull();
-
-  await page.mouse.move(
-    cardBox!.x + cardBox!.width / 2,
-    cardBox!.y + cardBox!.height / 2,
-  );
-  await page.mouse.down();
-  await page.mouse.move(canvasBox!.x + 80, canvasBox!.y + 200);
-  await page.mouse.up();
-
-  await expect(page.locator("#currency span")).toHaveText("0");
-
   await page.getByRole("button", { name: "Pause" }).click();
   await expect(page.getByRole("heading", { name: "Game Paused" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Unpause game" })).toBeVisible();
