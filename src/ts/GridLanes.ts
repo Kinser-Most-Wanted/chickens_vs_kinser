@@ -136,4 +136,24 @@ export class GridLanes {
     };
   }
 
+  public getLaneCount(): number {
+    return this.lanes;
+  }
+
+  public getCellCount(): number {
+    return this.cells;
+  }
+
+  public getCellWidth(): number {
+    return this.cellWidth;
+  }
+
+  public getBounds(): { x: number; y: number; width: number; height: number } {
+    return {
+      x: this.xOffset,
+      y: this.yOffset,
+      width: this.cells * this.cellWidth,
+      height: this.lanes * this.cellHeight,
+    };
+  }
 }

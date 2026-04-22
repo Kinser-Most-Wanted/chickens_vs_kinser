@@ -1,5 +1,11 @@
-import { dragState } from "./dragState.js";
+import {
+  DRAG_STATE_CHANGE_EVENT,
+  dragState,
+  notifyDragStateChanged,
+} from "./dragState.js";
 import type { CurrencyWallet } from "./currency.js";
+
+const CHICKEN_NET_IMAGE = "./assets/chickenNet.png";
 
 // =========================
 // TYPES
@@ -47,6 +53,7 @@ export class Shop {
   private currencyWallet: CurrencyWallet;
   private currencyText!: HTMLSpanElement;
   private shopContainer!: HTMLDivElement;
+  private netButton!: HTMLButtonElement;
   private chickenCards: { card: HTMLDivElement; chicken: Chicken }[] = [];
 
   constructor(currencyWallet: CurrencyWallet) {
@@ -77,7 +84,9 @@ export class Shop {
 
     this.shopContainer = document.createElement("div");
     this.shopContainer.id = "shop";
+    this.netButton = this.createNetButton();
 
+    shopWrapper.appendChild(this.netButton);
     shopWrapper.appendChild(this.shopContainer);
 
     topBar.appendChild(currencyDisplay);
@@ -90,8 +99,12 @@ export class Shop {
       this.updateCurrency();
       this.updateCardAvailability();
     });
+    window.addEventListener(DRAG_STATE_CHANGE_EVENT, () => {
+      this.updateToolSelection();
+    });
     this.renderShop();
     this.updateCardAvailability();
+    this.updateToolSelection();
   }
 
   private updateCurrency(): void {
@@ -103,6 +116,15 @@ export class Shop {
       const canAfford = this.currencyWallet.canAfford("exceeds", chicken.cost);
       card.classList.toggle("disabled", !canAfford);
       card.setAttribute("aria-disabled", `${!canAfford}`);
+    });
+  }
+
+  private updateToolSelection(): void {
+    const netSelected = dragState.activeTool === "net";
+    this.netButton.classList.toggle("selected-tool", netSelected);
+    this.netButton.setAttribute("aria-pressed", `${netSelected}`);
+    this.chickenCards.forEach(({ card }) => {
+      card.classList.toggle("selected-tool", dragState.isDragging && !netSelected);
     });
   }
 
@@ -141,10 +163,12 @@ export class Shop {
         return;
       }
 
+      dragState.activeTool = "place";
       dragState.isDragging = true;
       dragState.chicken = chicken;
       dragState.offsetX = 0;
       dragState.offsetY = 0;
+      notifyDragStateChanged();
 
       console.log(`Started dragging: ${chicken.name}`);
     });
@@ -156,6 +180,35 @@ export class Shop {
     this.chickenCards.push({ card, chicken });
 
     return card;
+  }
+
+  private createNetButton(): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.id = "net-tool";
+    button.className = "tool-card";
+    button.type = "button";
+    button.setAttribute("aria-label", "Select chicken net");
+
+    const image = document.createElement("img");
+    image.src = CHICKEN_NET_IMAGE;
+    image.alt = "";
+    image.className = "tool-card-image";
+    button.appendChild(image);
+
+    button.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+
+      event.preventDefault();
+      const nextTool = dragState.activeTool === "net" ? "place" : "net";
+      dragState.activeTool = nextTool;
+      dragState.isDragging = false;
+      dragState.chicken = null;
+      dragState.offsetX = 0;
+      dragState.offsetY = 0;
+      notifyDragStateChanged();
+    });
+
+    return button;
   }
 
   private renderShop(): void {
