@@ -1,4 +1,4 @@
-import { GridLanes } from "./GridLanesCLass.js";
+import { GridLanes } from "./GridLanes.js";
 import { Unit } from "./unit.js";
 
 export type SupportedCanvasSize = "small" | "large" | "portrait";

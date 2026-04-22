@@ -1,13 +1,12 @@
-import { GridLanes } from "./GridLanesCLass.js";
+import { GridLanes } from "./GridLanes.js";
 import type { ExceedsDrop, GameState, Projectile } from "./types.js";
 import { getEventCoordinates } from "./canvas.js";
-import { dragState } from "./dragState.js";
+import { dragState, resetDragState } from "./dragState.js";
 import type { Chicken } from "./shop.js";
 import type { CurrencyWallet } from "./currency.js";
 import { Kinser } from "./kinser.js";
-import { KINSER_CONFIGS } from "./unitData.js";
+import { KINSER_CONFIGS, CHICKEN_CONFIGS } from "./unitData.js";
 import { Chicken as ChickenClass } from "./chicken.js";
-import { CHICKEN_CONFIGS } from "./unitData.js";
 import type { Unit } from "./unit.js";
 
 const spriteCache: Record<string, HTMLImageElement> = {};
@@ -76,13 +75,6 @@ function renderDragPreview(
   renderingContext.restore();
 }
 
-function resetDragState(): void {
-  dragState.isDragging = false;
-  dragState.chicken = null;
-  dragState.offsetX = 0;
-  dragState.offsetY = 0;
-}
-
 export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
   const startingDrop: ExceedsDrop = {
     id: "starting-exceeds",
@@ -92,10 +84,17 @@ export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
     radius: 24,
   };
 
+  const gridMargins = {
+    top: 120,    // Clear the shop UI
+    bottom: 20,
+    left: 100,   // Space for lawn mowers/house
+    right: 20
+  };
+
   return {
     lastFrameTime: 0,
     frameCount: 0,
-    grid: new GridLanes(1, 9, { width: canvas.width, height: canvas.height }),
+    grid: new GridLanes(3, 9, { width: canvas.width, height: canvas.height }, gridMargins),
     units: [],
     projectiles: [],
     exceedsDrops: [startingDrop],
@@ -227,7 +226,6 @@ export function renderFrame(
   renderUnits(renderingContext, gameState);
   renderProjectiles(renderingContext, gameState);
   renderExceedsDrops(renderingContext, gameState);
-  renderDragPreview(renderingContext, gameState);
   renderDragPreview(renderingContext, gameState);
 
   renderingContext.fillStyle = "#ffffff";

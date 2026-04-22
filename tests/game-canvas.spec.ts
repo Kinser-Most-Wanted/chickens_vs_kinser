@@ -60,7 +60,7 @@ test("placing a chicken requires dragging it from the shop onto an open grid cel
   expect(canvasBox).not.toBeNull();
 
   const targetCell = {
-    x: canvasBox!.x + 80,
+    x: canvasBox!.x + 150,
     y: canvasBox!.y + 200,
   };
 

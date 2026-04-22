@@ -13,3 +13,10 @@ export const dragState: DragState = {
   offsetX: 0,
   offsetY: 0,
 };
+
+export function resetDragState(): void {
+  dragState.isDragging = false;
+  dragState.chicken = null;
+  dragState.offsetX = 0;
+  dragState.offsetY = 0;
+}
