@@ -358,6 +358,10 @@ canvas {
   filter: brightness(1.05);
 }
 
+#spawnEnemyBtn {
+  right: 92px;
+}
+
 .game-menu-overlay {
   position: absolute;
   inset: 0;

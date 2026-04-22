@@ -23,6 +23,7 @@ test("start game opens the game page and renders the landscape canvas with no st
 
   const canvas = page.locator("#game-canvas");
   await expect(canvas).toBeVisible();
+  await expect(page.getByRole("button", { name: "Spawn Enemy" })).toBeVisible();
 
   const canvasSize = await canvas.evaluate((element) => {
     const gameCanvas = element as HTMLCanvasElement;

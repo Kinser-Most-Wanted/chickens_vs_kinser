@@ -29,9 +29,12 @@ export interface GameLoopControls {
   pause: () => void;
   resume: () => void;
   restart: () => void;
+  spawnEnemy: () => void;
   isPaused: () => boolean;
   isGameOver: () => boolean;
 }
+
+const STARTING_KINSER_LANE = 1;
 
 function getSprite(src: string): HTMLImageElement {
   if (!spriteCache[src]) {
@@ -592,9 +595,11 @@ export function startGameLoop(
 ): GameLoopControls {
   let gameState = createInitialGameState(canvas);
 
-  const spawnStartingKinser = (): void => {
+  const spawnKinser = (lane = STARTING_KINSER_LANE): void => {
+    const startingCell = Math.max((gameState.grid?.getCellCount() ?? 1) - 1, 0);
+
     // TEMP: Spawn one basic Kinser for testing - will be replaced with proper wave system
-    const kinserConfig = { ...KINSER_CONFIGS.basic, lane: 0, cell: 8 };
+    const kinserConfig = { ...KINSER_CONFIGS.basic, lane, cell: startingCell };
     gameState.units.push(new Kinser(kinserConfig));
   };
 
@@ -608,12 +613,12 @@ export function startGameLoop(
 
   const restartGame = (): void => {
     gameState = createInitialGameState(canvas);
-    spawnStartingKinser();
+    spawnKinser();
     currencyWallet.reset({ exceeds: 100, eggs: 0 });
     resetDragState();
   };
 
-  spawnStartingKinser();
+  spawnKinser();
 
   const updatePointerPosition = (event: MouseEvent | TouchEvent) => {
     const { x, y } = getEventCoordinates(event, canvas);
@@ -731,6 +736,11 @@ export function startGameLoop(
       gameState.status = "playing";
     },
     restart: restartGame,
+    spawnEnemy: () => {
+      if (gameState.status !== "playing") return;
+
+      spawnKinser();
+    },
     isPaused: () => gameState.status === "paused",
     isGameOver: () => gameState.status === "gameOver",
   };

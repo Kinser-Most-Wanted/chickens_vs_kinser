@@ -30,6 +30,10 @@ function bootstrap(): void {
   // START GAME LOOP
   const gameLoopControls = startGameLoop(canvas, renderingContext, currencyWallet);
   initGameMenu(gameLoopControls);
+
+  document.getElementById("spawnEnemyBtn")?.addEventListener("click", () => {
+    gameLoopControls.spawnEnemy();
+  });
 }
 
 // ⚠️ Use "load" to ensure EVERYTHING (DOM + layout) is ready
