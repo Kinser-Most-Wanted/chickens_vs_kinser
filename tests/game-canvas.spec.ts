@@ -157,7 +157,7 @@ test("pause menu can unpause, restart with confirmation, and return to main menu
   await expect(page).toHaveURL(/\/$/);
 });
 
-test("robot reaching the end opens game over menu with restart and main menu actions", async ({
+test("robot reaching the end uses the armed lane clear before game over", async ({
   page,
 }) => {
   test.setTimeout(15000);
@@ -165,20 +165,9 @@ test("robot reaching the end opens game over menu with restart and main menu act
   await page.goto("/");
   await page.getByRole("button", { name: "Start Game" }).click();
 
-  await expect(page.getByRole("heading", { name: "Game Over" })).toBeVisible({
-    timeout: 11000,
-  });
-  await expect(
-    page.getByText("A robot made it to the end of the level."),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Restart game" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Back to main menu" })).toBeVisible();
-
-  await page.getByRole("button", { name: "Restart game" }).click();
-  await expect(page.getByRole("heading", { name: "Restart game?" })).toBeVisible();
-  await page.getByRole("button", { name: "Yes, restart" }).click();
   await expect(page.getByRole("heading", { name: "Game Over" })).toBeHidden();
-  await expect(page.locator("#currency span")).toHaveText("100");
+  await page.waitForTimeout(11000);
+  await expect(page.getByRole("heading", { name: "Game Over" })).toBeHidden();
 
   await page.getByRole("button", { name: "Pause" }).click();
   await page.getByRole("button", { name: "Back to main menu" }).click();

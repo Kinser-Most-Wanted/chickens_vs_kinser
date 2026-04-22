@@ -382,6 +382,10 @@ function triggerLaneClear(lane: number, gameState: GameState): void {
   });
 }
 
+function hasActiveLaneClear(lane: number, gameState: GameState): boolean {
+  return gameState.activeLaneClears.some((laneClear) => laneClear.lane === lane);
+}
+
 function updateLaneClears(gameState: GameState): void {
   const grid = gameState.grid;
   if (!grid) return;
@@ -407,14 +411,29 @@ function updateLaneClears(gameState: GameState): void {
   });
 }
 
-function checkLaneClearTriggers(gameState: GameState): void {
+export function resolveEndOfLaneKinsers(gameState: GameState): boolean {
   for (const unit of gameState.units) {
     if (unit.getType() !== "kinser") continue;
+    if (unit.getCell() > 0) continue;
 
-    if (unit.getCell() <= 0) {
-      triggerLaneClear(unit.getLane(), gameState);
+    const lane = unit.getLane();
+    const laneClear = gameState.laneClears.find(
+      (candidate) => candidate.lane === lane,
+    );
+
+    if (laneClear?.armed) {
+      triggerLaneClear(lane, gameState);
+      continue;
     }
+
+    if (hasActiveLaneClear(lane, gameState)) {
+      continue;
+    }
+
+    return true;
   }
+
+  return false;
 }
 
 export function attemptChickenRemoval(
@@ -457,7 +476,6 @@ export function updateGameState(
   // Check projectile collisions
   checkProjectileCollisions(gameState);
 
-  checkLaneClearTriggers(gameState);
   updateLaneClears(gameState);
 
   // Remove projectiles that are off-screen
@@ -689,11 +707,7 @@ export function startGameLoop(
       gameState.units.forEach((unit) => unit.attack(gameState));
       gameState.units = gameState.units.filter((unit) => unit.isAlive());
 
-      if (
-        gameState.units.some(
-          (unit) => unit.getType() === "kinser" && unit.getCell() <= 0,
-        )
-      ) {
+      if (resolveEndOfLaneKinsers(gameState)) {
         setGameOver();
       }
     }
