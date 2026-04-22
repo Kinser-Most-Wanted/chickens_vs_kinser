@@ -102,3 +102,101 @@ test("clicking a gameplay exceeds drop adds to the currency counter", async ({
 
   await expect(page.locator("#currency span")).toHaveText("125");
 });
+
+test("pause menu can unpause, restart with confirmation, and return to main menu", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Start Game" }).click();
+
+  const canvas = page.locator("#game-canvas");
+  await expect(canvas).toBeVisible();
+
+  const chickenCard = page.locator(".card", { hasText: "Basic Chicken" });
+  const canvasBox = await canvas.boundingBox();
+  const cardBox = await chickenCard.boundingBox();
+  expect(canvasBox).not.toBeNull();
+  expect(cardBox).not.toBeNull();
+
+  await page.mouse.move(
+    cardBox!.x + cardBox!.width / 2,
+    cardBox!.y + cardBox!.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(canvasBox!.x + 80, canvasBox!.y + 200);
+  await page.mouse.up();
+
+  await expect(page.locator("#currency span")).toHaveText("0");
+
+  await page.getByRole("button", { name: "Pause" }).click();
+  await expect(page.getByRole("heading", { name: "Game Paused" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Unpause game" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Back to main menu" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restart game" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Settings" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await page.locator("#chicken-volume").fill("35");
+  await page.getByRole("button", { name: "Save Settings" }).click();
+
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        JSON.parse(
+          window.localStorage.getItem("chickens-vs-kinser-settings") ?? "{}",
+        ),
+      ),
+    )
+    .toMatchObject({ chickenVolume: 35 });
+
+  await page.getByRole("button", { name: "Back to Pause Menu" }).click();
+  await expect(page.getByRole("heading", { name: "Game Paused" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Unpause game" }).click();
+  await expect(page.getByRole("heading", { name: "Game Paused" })).toBeHidden();
+
+  await page.getByRole("button", { name: "Pause" }).click();
+  await page.getByRole("button", { name: "Restart game" }).click();
+  await expect(page.getByRole("heading", { name: "Restart game?" })).toBeVisible();
+
+  await page.getByRole("button", { name: "No, go back" }).click();
+  await expect(page.getByRole("heading", { name: "Game Paused" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Restart game" }).click();
+  await page.getByRole("button", { name: "Yes, restart" }).click();
+  await expect(page.getByRole("heading", { name: "Restart game?" })).toBeHidden();
+  await expect(page.locator("#currency span")).toHaveText("100");
+
+  await page.getByRole("button", { name: "Pause" }).click();
+  await page.getByRole("button", { name: "Back to main menu" }).click();
+  await expect(page).toHaveURL(/\/$/);
+});
+
+test("robot reaching the end opens game over menu with restart and main menu actions", async ({
+  page,
+}) => {
+  test.setTimeout(15000);
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Start Game" }).click();
+
+  await expect(page.getByRole("heading", { name: "Game Over" })).toBeVisible({
+    timeout: 11000,
+  });
+  await expect(
+    page.getByText("A robot made it to the end of the level."),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restart game" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Back to main menu" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Restart game" }).click();
+  await expect(page.getByRole("heading", { name: "Restart game?" })).toBeVisible();
+  await page.getByRole("button", { name: "Yes, restart" }).click();
+  await expect(page.getByRole("heading", { name: "Game Over" })).toBeHidden();
+  await expect(page.locator("#currency span")).toHaveText("100");
+
+  await page.getByRole("button", { name: "Pause" }).click();
+  await page.getByRole("button", { name: "Back to main menu" }).click();
+  await expect(page).toHaveURL(/\/$/);
+});

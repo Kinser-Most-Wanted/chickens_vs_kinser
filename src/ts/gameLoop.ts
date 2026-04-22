@@ -25,6 +25,14 @@ const HELICOPTER_MARKER_HEIGHT = 42;
 const HELICOPTER_START_OFFSET = 60;
 const HELICOPTER_CLEAR_FRONT_OFFSET = 26;
 
+export interface GameLoopControls {
+  pause: () => void;
+  resume: () => void;
+  restart: () => void;
+  isPaused: () => boolean;
+  isGameOver: () => boolean;
+}
+
 function getSprite(src: string): HTMLImageElement {
   if (!spriteCache[src]) {
     const img = new Image();
@@ -284,6 +292,7 @@ export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
     lastFrameTime: 0,
     frameCount: 0,
     grid,
+    status: "playing",
     units: [],
     projectiles: [],
     exceedsDrops: [startingDrop],
@@ -324,25 +333,25 @@ function checkProjectileCollisions(gameState: GameState): void {
   // Check each projectile against each unit
   for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
     const projectile = gameState.projectiles[i];
-    
+
     for (const unit of gameState.units) {
       if (unit.getType() === "kinser") {
         // Simple bounding box collision (projectile is 30x30, unit is 60x60)
         const unitPos = gameState.grid?.getPixelCoordinates(unit.getLane(), unit.getCell());
         if (!unitPos) continue;
-        
+
         const projectileLeft = projectile.x - PROJECTILE_RENDER_SIZE / 2;
         const projectileRight = projectile.x + PROJECTILE_RENDER_SIZE / 2;
         const projectileTop = projectile.y - PROJECTILE_RENDER_SIZE / 2;
         const projectileBottom = projectile.y + PROJECTILE_RENDER_SIZE / 2;
-        
+
         const unitLeft = unitPos.pixelX - UNIT_RENDER_SIZE / 2;
         const unitRight = unitPos.pixelX + UNIT_RENDER_SIZE / 2;
         const unitTop = unitPos.pixelY - UNIT_RENDER_SIZE / 2;
         const unitBottom = unitPos.pixelY + UNIT_RENDER_SIZE / 2;
-        
+
         if (projectileRight > unitLeft && projectileLeft < unitRight &&
-            projectileBottom > unitTop && projectileTop < unitBottom) {
+          projectileBottom > unitTop && projectileTop < unitBottom) {
           // Collision detected - trigger damage function (placeholder)
           triggerProjectileDamage(unit, projectile);
           // Remove the projectile
@@ -435,6 +444,8 @@ export function updateGameState(
   gameState: GameState,
   currentTime: number,
 ): void {
+  if (gameState.status !== "playing") return;
+
   gameState.lastFrameTime = currentTime;
   gameState.frameCount += 1;
 
@@ -560,12 +571,31 @@ export function startGameLoop(
   canvas: HTMLCanvasElement,
   renderingContext: CanvasRenderingContext2D,
   currencyWallet: CurrencyWallet,
-): void {
-  const gameState = createInitialGameState(canvas);
+): GameLoopControls {
+  let gameState = createInitialGameState(canvas);
 
-  // TEMP: Spawn one basic Kinser for testing - will be replaced with proper wave system
-  const kinserConfig = { ...KINSER_CONFIGS.basic, lane: 0, cell: 8 };
-  gameState.units.push(new Kinser(kinserConfig));
+  const spawnStartingKinser = (): void => {
+    // TEMP: Spawn one basic Kinser for testing - will be replaced with proper wave system
+    const kinserConfig = { ...KINSER_CONFIGS.basic, lane: 0, cell: 8 };
+    gameState.units.push(new Kinser(kinserConfig));
+  };
+
+  const setGameOver = (): void => {
+    if (gameState.status === "gameOver") return;
+
+    gameState.status = "gameOver";
+    resetDragState();
+    window.dispatchEvent(new CustomEvent("game:over"));
+  };
+
+  const restartGame = (): void => {
+    gameState = createInitialGameState(canvas);
+    spawnStartingKinser();
+    currencyWallet.reset({ exceeds: 100, eggs: 0 });
+    resetDragState();
+  };
+
+  spawnStartingKinser();
 
   const updatePointerPosition = (event: MouseEvent | TouchEvent) => {
     const { x, y } = getEventCoordinates(event, canvas);
@@ -581,6 +611,8 @@ export function startGameLoop(
   });
 
   canvas.addEventListener("pointerdown", (event) => {
+    if (gameState.status !== "playing") return;
+
     updatePointerPosition(event);
 
     if (dragState.activeTool === "net") {
@@ -609,7 +641,13 @@ export function startGameLoop(
   });
 
   window.addEventListener("pointerup", (event) => {
-    if (!dragState.isDragging || !dragState.chicken) return;
+    if (
+      gameState.status !== "playing" ||
+      !dragState.isDragging ||
+      !dragState.chicken
+    ) {
+      return;
+    }
 
     updatePointerPosition(event);
     const placedChicken = dragState.chicken;
@@ -632,6 +670,8 @@ export function startGameLoop(
   canvas.addEventListener(
     "touchmove",
     (event) => {
+      if (gameState.status !== "playing") return;
+
       event.preventDefault();
       updatePointerPosition(event);
     },
@@ -639,18 +679,45 @@ export function startGameLoop(
   );
 
   function runFrame(currentTime: number): void {
-    updateGameState(gameState, currentTime);
+    if (gameState.status === "playing") {
+      updateGameState(gameState, currentTime);
 
-    gameState.units = gameState.units.filter((unit) => unit.isAlive());
+      gameState.units = gameState.units.filter((unit) => unit.isAlive());
 
-    // Update and attack with living units only.
-    gameState.units.forEach((unit) => unit.update(gameState));
-    gameState.units.forEach((unit) => unit.attack(gameState));
-    gameState.units = gameState.units.filter((unit) => unit.isAlive());
+      // Update and attack with living units only.
+      gameState.units.forEach((unit) => unit.update(gameState));
+      gameState.units.forEach((unit) => unit.attack(gameState));
+      gameState.units = gameState.units.filter((unit) => unit.isAlive());
+
+      if (
+        gameState.units.some(
+          (unit) => unit.getType() === "kinser" && unit.getCell() <= 0,
+        )
+      ) {
+        setGameOver();
+      }
+    }
 
     renderFrame(canvas, renderingContext, gameState);
     window.requestAnimationFrame(runFrame);
   }
 
   window.requestAnimationFrame(runFrame);
+
+  return {
+    pause: () => {
+      if (gameState.status !== "playing") return;
+
+      gameState.status = "paused";
+      resetDragState();
+    },
+    resume: () => {
+      if (gameState.status !== "paused") return;
+
+      gameState.status = "playing";
+    },
+    restart: restartGame,
+    isPaused: () => gameState.status === "paused",
+    isGameOver: () => gameState.status === "gameOver",
+  };
 }
