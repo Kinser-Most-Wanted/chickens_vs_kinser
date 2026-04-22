@@ -22,3 +22,14 @@ export const dragState: DragState = {
 export function notifyDragStateChanged(): void {
   window.dispatchEvent(new CustomEvent(DRAG_STATE_CHANGE_EVENT));
 }
+
+export function resetDragState(): void {
+  dragState.isDragging = false;
+  dragState.chicken = null;
+  dragState.offsetX = 0;
+  dragState.offsetY = 0;
+  if (dragState.activeTool !== "net") {
+    dragState.activeTool = "place";
+  }
+  notifyDragStateChanged();
+}
