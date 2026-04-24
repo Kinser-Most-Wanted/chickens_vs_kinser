@@ -23,6 +23,7 @@ test("start game opens the game page and renders the landscape canvas with no st
 
   const canvas = page.locator("#game-canvas");
   await expect(canvas).toBeVisible();
+  await expect(page.getByRole("button", { name: "Speed gameplay up to 2x" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Spawn Enemy" })).toBeVisible();
 
   const canvasSize = await canvas.evaluate((element) => {
@@ -156,6 +157,73 @@ test("pause menu can unpause, restart with confirmation, and return to main menu
   await page.getByRole("button", { name: "Pause" }).click();
   await page.getByRole("button", { name: "Back to main menu" }).click();
   await expect(page).toHaveURL(/\/$/);
+});
+
+test("fast forward button and keybind toggle 2x gameplay speed", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Start Game" }).click();
+
+  const fastForwardButton = page.locator("#fastForwardBtn");
+  await expect(fastForwardButton).toHaveText(">");
+  await expect(fastForwardButton).toHaveAttribute("aria-pressed", "false");
+
+  const getSnapshot = async (): Promise<{
+    frameCount: number;
+    simulationTime: number;
+    speedMultiplier: number;
+    fastForwardEnabled: boolean;
+  }> =>
+    page.evaluate(() => {
+      return (
+        (
+          window as Window & {
+            __cvkDebug?: {
+              getGameStateSnapshot: () => {
+                frameCount: number;
+                simulationTime: number;
+                speedMultiplier: number;
+                fastForwardEnabled: boolean;
+              };
+            };
+          }
+        ).__cvkDebug?.getGameStateSnapshot() ?? {
+          frameCount: -1,
+          simulationTime: -1,
+          speedMultiplier: -1,
+          fastForwardEnabled: false,
+        }
+      );
+    });
+
+  await page.waitForTimeout(250);
+  const baselineStart = await getSnapshot();
+  await page.waitForTimeout(500);
+  const baselineEnd = await getSnapshot();
+  const baselineDelta = baselineEnd.frameCount - baselineStart.frameCount;
+
+  await fastForwardButton.click();
+  await expect(fastForwardButton).toHaveAttribute("aria-pressed", "true");
+  await expect(fastForwardButton).toHaveText(">>");
+
+  await page.waitForTimeout(250);
+  const fastStart = await getSnapshot();
+  await page.waitForTimeout(500);
+  const fastEnd = await getSnapshot();
+  const fastDelta = fastEnd.frameCount - fastStart.frameCount;
+
+  expect(baselineDelta).toBeGreaterThan(0);
+  expect(fastDelta).toBeGreaterThan(baselineDelta);
+  expect(fastEnd.speedMultiplier).toBe(2);
+  expect(fastEnd.fastForwardEnabled).toBe(true);
+  expect(fastEnd.simulationTime - fastStart.simulationTime).toBeGreaterThan(
+    baselineEnd.simulationTime - baselineStart.simulationTime,
+  );
+
+  await page.keyboard.press("f");
+  await expect(fastForwardButton).toHaveAttribute("aria-pressed", "false");
+  await expect(fastForwardButton).toHaveText(">");
 });
 
 test("robot reaching the end uses the armed lane clear before game over", async ({
