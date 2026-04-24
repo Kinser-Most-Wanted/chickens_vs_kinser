@@ -358,8 +358,17 @@ canvas {
   filter: brightness(1.05);
 }
 
-#spawnEnemyBtn {
+#fastForwardBtn {
   right: 92px;
+}
+
+#fastForwardBtn[data-active="true"] {
+  background-color: #22c55e;
+  color: #052e16;
+}
+
+#spawnEnemyBtn {
+  right: 174px;
 }
 
 .game-menu-overlay {

@@ -20,7 +20,7 @@ export class Kinser extends Unit {
    * Movement is throttled by speed.
    */
   public update(gameState: GameState): void {
-    const now = performance.now();
+    const now = gameState.simulationTime;
     const moveInterval = 1000 / this.speed; // speed is cells per second
 
     if (now - this.lastMoveTime > moveInterval) {
@@ -53,7 +53,7 @@ export class Kinser extends Unit {
   public attack(_gameState: GameState): void {
     // TEMP: Attacks disabled
     /*
-    const now = performance.now();
+    const now = _gameState.simulationTime;
 
     // Check if enough time has passed since last attack
     if (now - this.lastAttackTime < this.attackCooldown) {

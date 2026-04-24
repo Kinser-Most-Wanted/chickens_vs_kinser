@@ -27,7 +27,7 @@ export class Chicken extends Unit {
    * TEMP: Disabled damage, but shoots projectiles when enemy detected
    */
   public attack(gameState: GameState): void {
-    const now = performance.now();
+    const now = gameState.simulationTime;
 
     // Check if enough time has passed since last attack
     if (now - this.lastAttackTime < this.attackCooldown) {

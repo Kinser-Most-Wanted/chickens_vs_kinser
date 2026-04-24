@@ -45,6 +45,9 @@ export interface ActiveLaneClear {
 export interface GameState {
   lastFrameTime: number;
   frameCount: number;
+  simulationTime: number;
+  speedMultiplier: number;
+  fastForwardEnabled: boolean;
   status: "playing" | "paused" | "gameOver";
   grid?: GridLanes;
   units: Unit[];
