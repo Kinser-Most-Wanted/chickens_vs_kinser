@@ -228,6 +228,8 @@ export function initSettingsControls(root: ParentNode = document): void {
   });
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  initSettingsControls(document);
-});
+if (typeof window !== "undefined") {
+  window.addEventListener("DOMContentLoaded", () => {
+    initSettingsControls(document);
+  });
+}

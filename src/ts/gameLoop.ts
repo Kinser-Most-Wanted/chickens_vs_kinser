@@ -13,6 +13,7 @@ import { Kinser } from "./kinser.js";
 import { KINSER_CONFIGS, CHICKEN_CONFIGS } from "./unitData.js";
 import { Chicken as ChickenClass } from "./chicken.js";
 import type { Unit } from "./unit.js";
+import { readStoredSettings } from "./settings.js";
 
 const spriteCache: Record<string, HTMLImageElement> = {};
 const HELICOPTER_SPRITE = "./assets/attackHeli.png";
@@ -24,12 +25,17 @@ const HELICOPTER_MARKER_WIDTH = 72;
 const HELICOPTER_MARKER_HEIGHT = 42;
 const HELICOPTER_START_OFFSET = 60;
 const HELICOPTER_CLEAR_FRONT_OFFSET = 26;
+const NORMAL_SPEED_MULTIPLIER = 1;
+const FAST_FORWARD_SPEED_MULTIPLIER = 2;
+const SIMULATION_STEP_MS = 1000 / 60;
 
 export interface GameLoopControls {
   pause: () => void;
   resume: () => void;
   restart: () => void;
   spawnEnemy: () => void;
+  toggleFastForward: () => void;
+  isFastForwardEnabled: () => boolean;
   isPaused: () => boolean;
   isGameOver: () => boolean;
 }
@@ -294,6 +300,9 @@ export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
   return {
     lastFrameTime: 0,
     frameCount: 0,
+    simulationTime: 0,
+    speedMultiplier: NORMAL_SPEED_MULTIPLIER,
+    fastForwardEnabled: false,
     grid,
     status: "playing",
     units: [],
@@ -464,11 +473,10 @@ export function attemptChickenRemoval(
 
 export function updateGameState(
   gameState: GameState,
-  currentTime: number,
 ): void {
   if (gameState.status !== "playing") return;
 
-  gameState.lastFrameTime = currentTime;
+  gameState.simulationTime += SIMULATION_STEP_MS;
   gameState.frameCount += 1;
 
   // Update projectiles
@@ -483,6 +491,86 @@ export function updateGameState(
 
   // Remove projectiles that are off-screen
   gameState.projectiles = gameState.projectiles.filter(projectile => projectile.x < 1000); // Assuming canvas width ~800, remove when far off right
+}
+
+function toggleFastForward(gameState: GameState): boolean {
+  gameState.fastForwardEnabled = !gameState.fastForwardEnabled;
+  gameState.speedMultiplier = gameState.fastForwardEnabled
+    ? FAST_FORWARD_SPEED_MULTIPLIER
+    : NORMAL_SPEED_MULTIPLIER;
+
+  return gameState.fastForwardEnabled;
+}
+
+function updateFastForwardButtonState(
+  fastForwardButton: HTMLButtonElement | null,
+  gameState: GameState,
+): void {
+  if (!fastForwardButton) {
+    return;
+  }
+
+  const buttonLabel = gameState.fastForwardEnabled ? ">>" : ">";
+  const buttonDescription = gameState.fastForwardEnabled
+    ? "Return gameplay to normal speed"
+    : "Speed gameplay up to 2x";
+
+  fastForwardButton.textContent = buttonLabel;
+  fastForwardButton.setAttribute("aria-label", buttonDescription);
+  fastForwardButton.setAttribute(
+    "aria-pressed",
+    String(gameState.fastForwardEnabled),
+  );
+  fastForwardButton.dataset.active = String(gameState.fastForwardEnabled);
+  fastForwardButton.title = `Fast forward (${readStoredSettings().fastForwardKey || "F"})`;
+}
+
+function shouldIgnoreKeybindTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return (
+    target.isContentEditable ||
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement
+  );
+}
+
+function matchesFastForwardKey(event: KeyboardEvent): boolean {
+  if (event.repeat || shouldIgnoreKeybindTarget(event.target)) {
+    return false;
+  }
+
+  const configuredKey = readStoredSettings().fastForwardKey.trim();
+  if (!configuredKey) {
+    return event.key.toLowerCase() === "f";
+  }
+
+  return event.key.toLowerCase() === configuredKey.toLowerCase();
+}
+
+function publishDebugState(gameState: GameState): void {
+  (
+    window as Window & {
+      __cvkDebug?: {
+        getGameStateSnapshot: () => {
+          frameCount: number;
+          simulationTime: number;
+          speedMultiplier: number;
+          fastForwardEnabled: boolean;
+        };
+      };
+    }
+  ).__cvkDebug = {
+    getGameStateSnapshot: () => ({
+      frameCount: gameState.frameCount,
+      simulationTime: gameState.simulationTime,
+      speedMultiplier: gameState.speedMultiplier,
+      fastForwardEnabled: gameState.fastForwardEnabled,
+    }),
+  };
 }
 
 export function renderExceedsDrops(
@@ -594,6 +682,10 @@ export function startGameLoop(
   currencyWallet: CurrencyWallet,
 ): GameLoopControls {
   let gameState = createInitialGameState(canvas);
+  let simulationAccumulatorMs = 0;
+  const fastForwardButton = document.getElementById(
+    "fastForwardBtn",
+  ) as HTMLButtonElement | null;
 
   const spawnKinser = (lane = STARTING_KINSER_LANE): void => {
     const startingCell = Math.max((gameState.grid?.getCellCount() ?? 1) - 1, 0);
@@ -613,12 +705,26 @@ export function startGameLoop(
 
   const restartGame = (): void => {
     gameState = createInitialGameState(canvas);
+    simulationAccumulatorMs = 0;
     spawnKinser();
     currencyWallet.reset({ exceeds: 100, eggs: 0 });
     resetDragState();
+    updateFastForwardButtonState(fastForwardButton, gameState);
+    publishDebugState(gameState);
+  };
+
+  const handleFastForwardToggle = (): void => {
+    if (gameState.status === "gameOver") {
+      return;
+    }
+
+    toggleFastForward(gameState);
+    updateFastForwardButtonState(fastForwardButton, gameState);
   };
 
   spawnKinser();
+  updateFastForwardButtonState(fastForwardButton, gameState);
+  publishDebugState(gameState);
 
   const updatePointerPosition = (event: MouseEvent | TouchEvent) => {
     const { x, y } = getEventCoordinates(event, canvas);
@@ -701,20 +807,52 @@ export function startGameLoop(
     { passive: false },
   );
 
+  fastForwardButton?.addEventListener("click", () => {
+    handleFastForwardToggle();
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (!matchesFastForwardKey(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    handleFastForwardToggle();
+  });
+
+  const runSimulationStep = (): void => {
+    updateGameState(gameState);
+
+    gameState.units = gameState.units.filter((unit) => unit.isAlive());
+    gameState.units.forEach((unit) => unit.update(gameState));
+    gameState.units.forEach((unit) => unit.attack(gameState));
+    gameState.units = gameState.units.filter((unit) => unit.isAlive());
+
+    if (resolveEndOfLaneKinsers(gameState)) {
+      setGameOver();
+    }
+  };
+
   function runFrame(currentTime: number): void {
     if (gameState.status === "playing") {
-      updateGameState(gameState, currentTime);
-
-      gameState.units = gameState.units.filter((unit) => unit.isAlive());
-
-      // Update and attack with living units only.
-      gameState.units.forEach((unit) => unit.update(gameState));
-      gameState.units.forEach((unit) => unit.attack(gameState));
-      gameState.units = gameState.units.filter((unit) => unit.isAlive());
-
-      if (resolveEndOfLaneKinsers(gameState)) {
-        setGameOver();
+      if (gameState.lastFrameTime === 0) {
+        gameState.lastFrameTime = currentTime;
       }
+
+      const elapsedMs = Math.min(currentTime - gameState.lastFrameTime, 250);
+      gameState.lastFrameTime = currentTime;
+      simulationAccumulatorMs += elapsedMs * gameState.speedMultiplier;
+
+      while (
+        simulationAccumulatorMs >= SIMULATION_STEP_MS &&
+        gameState.status === "playing"
+      ) {
+        runSimulationStep();
+        simulationAccumulatorMs -= SIMULATION_STEP_MS;
+      }
+    } else {
+      gameState.lastFrameTime = 0;
+      simulationAccumulatorMs = 0;
     }
 
     renderFrame(canvas, renderingContext, gameState);
@@ -728,12 +866,15 @@ export function startGameLoop(
       if (gameState.status !== "playing") return;
 
       gameState.status = "paused";
+      gameState.lastFrameTime = 0;
+      simulationAccumulatorMs = 0;
       resetDragState();
     },
     resume: () => {
       if (gameState.status !== "paused") return;
 
       gameState.status = "playing";
+      gameState.lastFrameTime = 0;
     },
     restart: restartGame,
     spawnEnemy: () => {
@@ -741,6 +882,10 @@ export function startGameLoop(
 
       spawnKinser();
     },
+    toggleFastForward: () => {
+      handleFastForwardToggle();
+    },
+    isFastForwardEnabled: () => gameState.fastForwardEnabled,
     isPaused: () => gameState.status === "paused",
     isGameOver: () => gameState.status === "gameOver",
   };
