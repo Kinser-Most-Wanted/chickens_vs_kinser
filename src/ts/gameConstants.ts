@@ -1,0 +1,13 @@
+export const HELICOPTER_SPRITE = "./assets/attackHeli.png";
+export const UNIT_RENDER_SIZE = 60;
+export const PROJECTILE_RENDER_SIZE = 30;
+export const HELICOPTER_WIDTH = 88;
+export const HELICOPTER_HEIGHT = 34;
+export const HELICOPTER_MARKER_WIDTH = 72;
+export const HELICOPTER_MARKER_HEIGHT = 42;
+export const HELICOPTER_START_OFFSET = 60;
+export const HELICOPTER_CLEAR_FRONT_OFFSET = 26;
+export const NORMAL_SPEED_MULTIPLIER = 1;
+export const FAST_FORWARD_SPEED_MULTIPLIER = 2;
+export const SIMULATION_STEP_MS = 1000 / 60;
+export const STARTING_KINSER_LANE = 1;
