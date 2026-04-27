@@ -1,8 +1,6 @@
 import { getEventCoordinates } from "./canvas.js";
 import { dragState, resetDragState, notifyDragStateChanged } from "./dragState.js";
 import type { CurrencyWallet } from "./currency.js";
-import { Kinser } from "./kinser.js";
-import { KINSER_CONFIGS } from "./unitData.js";
 import { createInitialGameState } from "./gameState.js";
 import { PlacementCooldowns } from "./placementCooldowns.js";
 import {
@@ -19,7 +17,7 @@ import {
   toggleFastForward,
   updateFastForwardButtonState,
 } from "./gameUi.js";
-import { SIMULATION_STEP_MS, STARTING_KINSER_LANE } from "./gameConstants.js";
+import { SIMULATION_STEP_MS } from "./gameConstants.js";
 
 export interface GameLoopControls {
   pause: () => void;
@@ -55,14 +53,6 @@ export function startGameLoop(
     "fastForwardBtn",
   ) as HTMLButtonElement | null;
 
-  const spawnKinser = (lane = STARTING_KINSER_LANE): void => {
-    const startingCell = Math.max((gameState.grid?.getCellCount() ?? 1) - 1, 0);
-
-    // TEMP: Spawn one basic Kinser for testing - will be replaced with proper wave system
-    const kinserConfig = { ...KINSER_CONFIGS.basic, lane, cell: startingCell };
-    gameState.units.push(new Kinser(kinserConfig));
-  };
-
   const setGameOver = (): void => {
     if (gameState.status === "gameOver") return;
 
@@ -74,7 +64,6 @@ export function startGameLoop(
   const restartGame = (): void => {
     gameState = createInitialGameState(canvas);
     simulationAccumulatorMs = 0;
-    spawnKinser();
     currencyWallet.reset({ exceeds: 100, eggs: 0 });
     placementCooldowns.reset();
     resetDragState();
@@ -91,7 +80,6 @@ export function startGameLoop(
     updateFastForwardButtonState(fastForwardButton, gameState);
   };
 
-  spawnKinser();
   updateFastForwardButtonState(fastForwardButton, gameState);
   placementCooldowns.setCurrentTime(gameState.simulationTime);
   publishDebugState(gameState, currencyWallet, placementCooldowns);
@@ -252,7 +240,6 @@ export function startGameLoop(
     spawnEnemy: () => {
       if (gameState.status !== "playing") return;
 
-      spawnKinser();
     },
     toggleFastForward: () => {
       handleFastForwardToggle();
