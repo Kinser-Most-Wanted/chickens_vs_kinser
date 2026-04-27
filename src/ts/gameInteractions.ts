@@ -4,6 +4,7 @@ import type { CurrencyWallet } from "./currency.js";
 import { CHICKEN_CONFIGS } from "./unitData.js";
 import { Chicken as ChickenClass } from "./chicken.js";
 import type { GameState } from "./types.js";
+import type { PlacementCooldowns } from "./placementCooldowns.js";
 
 export function collectExceeds(amount: number, currencyWallet: CurrencyWallet): boolean {
   return currencyWallet.add("exceeds", amount);
@@ -62,9 +63,13 @@ export function attemptUnitPlacement(
   gameState: GameState,
   chicken: Chicken | null = dragState.chicken,
   currencyWallet: CurrencyWallet | null = null,
+  placementCooldowns: PlacementCooldowns | null = null,
 ): boolean {
   if (!gameState.grid || !chicken) return false;
   if (currencyWallet && !currencyWallet.canAfford("exceeds", chicken.cost)) {
+    return false;
+  }
+  if (placementCooldowns?.isOnCooldown(chicken.id)) {
     return false;
   }
 
@@ -90,5 +95,6 @@ export function attemptUnitPlacement(
   }
 
   gameState.units.push(new ChickenClass(unitConfig));
+  placementCooldowns?.startCooldown(chicken.id);
   return true;
 }

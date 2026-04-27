@@ -4,6 +4,7 @@ import type { CurrencyWallet } from "./currency.js";
 import { Kinser } from "./kinser.js";
 import { KINSER_CONFIGS } from "./unitData.js";
 import { createInitialGameState } from "./gameState.js";
+import { PlacementCooldowns } from "./placementCooldowns.js";
 import {
   attemptChickenRemoval,
   attemptExceedsCollection,
@@ -46,6 +47,7 @@ export function startGameLoop(
   canvas: HTMLCanvasElement,
   renderingContext: CanvasRenderingContext2D,
   currencyWallet: CurrencyWallet,
+  placementCooldowns: PlacementCooldowns,
 ): GameLoopControls {
   let gameState = createInitialGameState(canvas);
   let simulationAccumulatorMs = 0;
@@ -74,9 +76,10 @@ export function startGameLoop(
     simulationAccumulatorMs = 0;
     spawnKinser();
     currencyWallet.reset({ exceeds: 100, eggs: 0 });
+    placementCooldowns.reset();
     resetDragState();
     updateFastForwardButtonState(fastForwardButton, gameState);
-    publishDebugState(gameState);
+    publishDebugState(gameState, currencyWallet, placementCooldowns);
   };
 
   const handleFastForwardToggle = (): void => {
@@ -90,7 +93,8 @@ export function startGameLoop(
 
   spawnKinser();
   updateFastForwardButtonState(fastForwardButton, gameState);
-  publishDebugState(gameState);
+  placementCooldowns.setCurrentTime(gameState.simulationTime);
+  publishDebugState(gameState, currencyWallet, placementCooldowns);
 
   const updatePointerPosition = (event: MouseEvent | PointerEvent | TouchEvent) => {
     const { x, y } = getEventCoordinates(event, canvas);
@@ -153,6 +157,7 @@ export function startGameLoop(
       gameState,
       placedChicken,
       currencyWallet,
+      placementCooldowns,
     );
 
     if (success) {
@@ -188,6 +193,7 @@ export function startGameLoop(
 
   const runSimulationStep = (): void => {
     updateGameState(gameState);
+    placementCooldowns.setCurrentTime(gameState.simulationTime);
 
     gameState.units = gameState.units.filter((unit) => unit.isAlive());
     gameState.units.forEach((unit) => unit.update(gameState));
