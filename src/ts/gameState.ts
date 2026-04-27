@@ -42,5 +42,10 @@ export function createInitialGameState(canvas: HTMLCanvasElement): GameState {
     exceedsDrops: [startingDrop],
     laneClears,
     activeLaneClears: [],
+    currentWave: 1,
+    waveProgress: 0,
+    lastSpawnTime: 0,
+    enemiesSpawnedInWave: 0,
+    waveActive: true,
   };
 }

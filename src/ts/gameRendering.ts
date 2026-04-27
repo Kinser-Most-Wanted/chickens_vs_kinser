@@ -12,7 +12,11 @@ import {
 
 const spriteCache: Record<string, HTMLImageElement> = {};
 
-function getSprite(src: string): HTMLImageElement {
+function getSprite(src: string): HTMLImageElement | null {
+  if (typeof Image === "undefined") {
+    return null;
+  }
+
   if (!spriteCache[src]) {
     const img = new Image();
     img.src = src;
@@ -21,6 +25,8 @@ function getSprite(src: string): HTMLImageElement {
 
   return spriteCache[src];
 }
+
+const EXCEEDS_SPRITE = "./assets/exceeds.png";
 
 function renderUnits(
   renderingContext: CanvasRenderingContext2D,
@@ -33,13 +39,24 @@ function renderUnits(
     if (!pos) continue;
 
     const img = getSprite(unit.getImage());
-    renderingContext.drawImage(
-      img,
-      pos.pixelX - UNIT_RENDER_SIZE / 2,
-      pos.pixelY - UNIT_RENDER_SIZE / 2,
-      UNIT_RENDER_SIZE,
-      UNIT_RENDER_SIZE,
-    );
+
+if (img && img.complete && img.naturalWidth > 0) {
+  renderingContext.drawImage(
+    img,
+    pos.pixelX - UNIT_RENDER_SIZE / 2,
+    pos.pixelY - UNIT_RENDER_SIZE / 2,
+    UNIT_RENDER_SIZE,
+    UNIT_RENDER_SIZE,
+  );
+} else {
+  renderingContext.fillStyle = "#ffffff";
+  renderingContext.fillRect(
+    pos.pixelX - UNIT_RENDER_SIZE / 2,
+    pos.pixelY - UNIT_RENDER_SIZE / 2,
+    UNIT_RENDER_SIZE,
+    UNIT_RENDER_SIZE,
+  );
+}
   }
 }
 
@@ -49,13 +66,27 @@ function renderProjectiles(
 ): void {
   for (const projectile of gameState.projectiles) {
     const img = getSprite(projectile.image);
-    renderingContext.drawImage(
-      img,
-      projectile.x - PROJECTILE_RENDER_SIZE / 2,
-      projectile.y - PROJECTILE_RENDER_SIZE / 2,
-      PROJECTILE_RENDER_SIZE,
-      PROJECTILE_RENDER_SIZE,
-    );
+
+if (img && img.complete && img.naturalWidth > 0) {
+  renderingContext.drawImage(
+    img,
+    projectile.x - PROJECTILE_RENDER_SIZE / 2,
+    projectile.y - PROJECTILE_RENDER_SIZE / 2,
+    PROJECTILE_RENDER_SIZE,
+    PROJECTILE_RENDER_SIZE,
+  );
+} else {
+  renderingContext.fillStyle = "#ffffff";
+  renderingContext.beginPath();
+  renderingContext.arc(
+    projectile.x,
+    projectile.y,
+    PROJECTILE_RENDER_SIZE / 2,
+    0,
+    Math.PI * 2,
+  );
+  renderingContext.fill();
+}
   }
 }
 
@@ -82,8 +113,10 @@ function renderDragPreview(
   const pixel = gameState.grid.getPixelCoordinates(coords.lane, coords.cell);
   const img = getSprite(dragState.chicken.image);
 
-  renderingContext.save();
-  renderingContext.globalAlpha = 0.6;
+renderingContext.save();
+renderingContext.globalAlpha = 0.6;
+
+if (img && img.complete && img.naturalWidth > 0) {
   renderingContext.drawImage(
     img,
     pixel.pixelX - UNIT_RENDER_SIZE / 2,
@@ -91,7 +124,17 @@ function renderDragPreview(
     UNIT_RENDER_SIZE,
     UNIT_RENDER_SIZE,
   );
-  renderingContext.restore();
+} else {
+  renderingContext.fillStyle = "#ffffff";
+  renderingContext.fillRect(
+    pixel.pixelX - UNIT_RENDER_SIZE / 2,
+    pixel.pixelY - UNIT_RENDER_SIZE / 2,
+    UNIT_RENDER_SIZE,
+    UNIT_RENDER_SIZE,
+  );
+}
+
+renderingContext.restore();
 }
 
 function renderNetPreview(
@@ -147,7 +190,7 @@ function renderLaneClearMarkers(
 
     renderingContext.save();
 
-    if (helicopterSprite.complete && helicopterSprite.naturalWidth > 0) {
+    if (helicopterSprite && helicopterSprite.complete && helicopterSprite.naturalWidth > 0) {
       renderingContext.drawImage(
         helicopterSprite,
         markerX,
@@ -189,7 +232,7 @@ function renderHelicopter(
   const bodyY = laneCenter.pixelY - HELICOPTER_HEIGHT / 2;
   const helicopterSprite = getSprite(HELICOPTER_SPRITE);
 
-  if (helicopterSprite.complete && helicopterSprite.naturalWidth > 0) {
+  if (helicopterSprite && helicopterSprite.complete && helicopterSprite.naturalWidth > 0) {
     renderingContext.drawImage(
       helicopterSprite,
       bodyX,
@@ -244,22 +287,97 @@ export function renderExceedsDrops(
   renderingContext: CanvasRenderingContext2D,
   gameState: GameState,
 ): void {
+
+  const exceedsSprite = getSprite(EXCEEDS_SPRITE);
   if (!gameState.exceedsDrops) return;
 
   for (const drop of gameState.exceedsDrops) {
-    renderingContext.fillStyle = "#ffff00";
-    renderingContext.beginPath();
-    renderingContext.arc(drop.pixelX, drop.pixelY, drop.radius, 0, 2 * Math.PI);
-    renderingContext.fill();
+    const size = drop.radius * 2;
 
-    renderingContext.fillStyle = "#000000";
-    renderingContext.font = "12px Arial";
+    if (exceedsSprite && exceedsSprite.complete && exceedsSprite.naturalWidth > 0) {
+      renderingContext.drawImage(
+        exceedsSprite,
+        drop.pixelX - drop.radius,
+        drop.pixelY - drop.radius,
+        size,
+        size,
+      );
+    } else {
+      renderingContext.fillStyle = "#ffff00";
+      renderingContext.beginPath();
+      renderingContext.arc(drop.pixelX, drop.pixelY, drop.radius, 0, 2 * Math.PI);
+      renderingContext.fill();
+    }
+
+    renderingContext.fillStyle = "#ffffff";
+    renderingContext.font = "bold 14px Arial";
+    renderingContext.textAlign = "center";
     renderingContext.fillText(
       drop.amount.toString(),
-      drop.pixelX - 10,
-      drop.pixelY + 4,
+      drop.pixelX,
+      drop.pixelY + drop.radius + 15,
     );
+    renderingContext.textAlign = "left";
   }
+}
+
+function renderWaveProgress(
+  renderingContext: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  gameState: GameState,
+): void {
+  const barWidth = 400;
+  const barHeight = 20;
+  const barX = (canvas.width - barWidth) / 2;
+  const barY = canvas.height - 40;
+
+  // Background
+  renderingContext.fillStyle = "#333333";
+  renderingContext.fillRect(barX, barY, barWidth, barHeight);
+
+  // Progress
+  renderingContext.fillStyle = "#4caf50";
+  renderingContext.fillRect(barX, barY, barWidth * gameState.waveProgress, barHeight);
+
+  // Wave boundary flags
+  const totalEnemiesAllWaves = 21; // 5 + 9 + 7
+  const wave1End = 5 / totalEnemiesAllWaves; // Wave 1: 5 enemies
+  const wave2End = (5 + 9) / totalEnemiesAllWaves; // Wave 2: 5 + 9 = 14 enemies
+  // Wave 3 goes to the end
+
+  renderingContext.strokeStyle = "#ffffff";
+  renderingContext.lineWidth = 2;
+
+  // Wave 1-2 boundary flag
+  const flag1X = barX + barWidth * wave1End;
+  renderingContext.beginPath();
+  renderingContext.moveTo(flag1X, barY - 5);
+  renderingContext.lineTo(flag1X, barY + barHeight + 5);
+  renderingContext.stroke();
+
+  // Wave 2-3 boundary flag
+  const flag2X = barX + barWidth * wave2End;
+  renderingContext.beginPath();
+  renderingContext.moveTo(flag2X, barY - 5);
+  renderingContext.lineTo(flag2X, barY + barHeight + 5);
+  renderingContext.stroke();
+
+  // Border
+  renderingContext.strokeStyle = "#ffffff";
+  renderingContext.lineWidth = 2;
+  renderingContext.strokeRect(barX, barY, barWidth, barHeight);
+
+  // Text - show current wave and overall progress
+  renderingContext.fillStyle = "#ffffff";
+  renderingContext.font = "16px Arial";
+  renderingContext.textAlign = "center";
+  const progressPercent = Math.round(gameState.waveProgress * 100);
+  renderingContext.fillText(
+    `Wave ${gameState.currentWave}/3 - ${progressPercent}%`,
+    barX + barWidth / 2,
+    barY - 5,
+  );
+  renderingContext.textAlign = "left";
 }
 
 export function renderFrame(
@@ -282,6 +400,9 @@ export function renderFrame(
   renderExceedsDrops(renderingContext, gameState);
   renderDragPreview(renderingContext, gameState);
   renderNetPreview(renderingContext, gameState);
+
+  // Render wave progress bar
+  renderWaveProgress(renderingContext, canvas, gameState);
 
   renderingContext.fillStyle = "#ffffff";
   renderingContext.font = "24px Arial";

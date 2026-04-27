@@ -54,11 +54,8 @@ export function startGameLoop(
   ) as HTMLButtonElement | null;
 
   const spawnKinser = (lane = STARTING_KINSER_LANE): void => {
-    const startingCell = Math.max((gameState.grid?.getCellCount() ?? 1) - 1, 0);
-
     // TEMP: Spawn one basic Kinser for testing - will be replaced with proper wave system
-    const kinserConfig = { ...KINSER_CONFIGS.basic, lane, cell: startingCell };
-    gameState.units.push(new Kinser(kinserConfig));
+    // Removed, now handled by wave system
   };
 
   const setGameOver = (): void => {
@@ -72,7 +69,6 @@ export function startGameLoop(
   const restartGame = (): void => {
     gameState = createInitialGameState(canvas);
     simulationAccumulatorMs = 0;
-    spawnKinser();
     currencyWallet.reset({ exceeds: 100, eggs: 0 });
     resetDragState();
     updateFastForwardButtonState(fastForwardButton, gameState);
@@ -88,6 +84,7 @@ export function startGameLoop(
     updateFastForwardButtonState(fastForwardButton, gameState);
   };
 
+  spawnKinser();
   spawnKinser();
   updateFastForwardButtonState(fastForwardButton, gameState);
   publishDebugState(gameState);

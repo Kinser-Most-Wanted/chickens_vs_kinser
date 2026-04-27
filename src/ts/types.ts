@@ -42,6 +42,14 @@ export interface ActiveLaneClear {
   speed: number;
 }
 
+export interface WaveConfig {
+  waveNumber: number;
+  enemyCount: number;
+  enemyType: "basic" | "tank";
+  spawnInterval: number; // ms between spawns
+  delayBeforeNextWave: number; // ms after wave completes
+}
+
 export interface GameState {
   lastFrameTime: number;
   frameCount: number;
@@ -57,4 +65,9 @@ export interface GameState {
   activeLaneClears: ActiveLaneClear[];
   coordX?: number;
   coordY?: number;
+  currentWave: number;
+  waveProgress: number; // 0-1
+  lastSpawnTime: number;
+  enemiesSpawnedInWave: number;
+  waveActive: boolean;
 }
