@@ -6,3 +6,4 @@ playwright-report/
 .env
 src/js
 GEMINI.md
+.codex

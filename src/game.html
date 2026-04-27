@@ -16,9 +16,21 @@
       <div class="canvas-wrapper">
         <canvas id="game-canvas" aria-label="Game canvas"></canvas>
     
-        <button id="mainMenuBtn" class="canvas-button">
-          Main Menu
+        <button id="pauseGameBtn" class="canvas-button">
+          Pause
         </button>
+        <button
+          id="fastForwardBtn"
+          class="canvas-button fast-forward-button"
+          type="button"
+          aria-pressed="false"
+          aria-label="Speed gameplay up to 2x"
+        >
+          &gt;
+        </button>
+        <button id="spawnEnemyBtn" class="canvas-button spawn-enemy-button">
+          Spawn Enemy
+        </button> 
       </div>
     
       <div id="uiLayer"></div>
@@ -26,7 +38,6 @@
     </section>
   </main>
 
-    <script type="module" src="./js/mainMenu.js"></script>
     <script type="module" src="./js/index.js"></script>
 </body>
 </html>

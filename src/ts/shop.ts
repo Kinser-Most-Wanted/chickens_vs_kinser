@@ -1,5 +1,13 @@
-import { dragState } from "./dragState.js";
+import {
+  DRAG_STATE_CHANGE_EVENT,
+  dragState,
+  notifyDragStateChanged,
+} from "./dragState.js";
 import type { CurrencyWallet } from "./currency.js";
+import type { PlacementCooldowns } from "./placementCooldowns.js";
+
+const CHICKEN_NET_IMAGE = "./assets/chickenNet.png";
+const DEFAULT_UNIT_COOLDOWN_MS = 5000;
 
 // =========================
 // TYPES
@@ -10,6 +18,7 @@ export type Chicken = {
   name: string;
   cost: number;
   image: string;
+  cooldownMs: number;
 };
 
 // =========================
@@ -24,20 +33,25 @@ const chickens: Chicken[] = [
     name: "Basic Chicken",
     cost: 100,
     image: "./assets/basicchicken.png",
+    cooldownMs: DEFAULT_UNIT_COOLDOWN_MS,
   },
   {
     id: "exceeds",
     name: "Exceeds Chicken",
     cost: 50,
     image: "./assets/exceedschicken.png",
+    cooldownMs: DEFAULT_UNIT_COOLDOWN_MS,
   },
   {
     id: "tank",
     name: "Tank Chicken",
     cost: 75,
     image: "./assets/tankchicken.png",
+    cooldownMs: DEFAULT_UNIT_COOLDOWN_MS,
   },
 ];
+
+export const SHOP_CHICKENS = chickens;
 
 // =========================
 // SHOP CLASS
@@ -45,12 +59,23 @@ const chickens: Chicken[] = [
 
 export class Shop {
   private currencyWallet: CurrencyWallet;
+  private placementCooldowns: PlacementCooldowns;
   private currencyText!: HTMLSpanElement;
   private shopContainer!: HTMLDivElement;
-  private chickenCards: { card: HTMLDivElement; chicken: Chicken }[] = [];
+  private netButton!: HTMLButtonElement;
+  private chickenCards: {
+    card: HTMLDivElement;
+    chicken: Chicken;
+    cooldownOverlay: HTMLDivElement;
+    cooldownText: HTMLSpanElement;
+  }[] = [];
 
-  constructor(currencyWallet: CurrencyWallet) {
+  constructor(
+    currencyWallet: CurrencyWallet,
+    placementCooldowns: PlacementCooldowns,
+  ) {
     this.currencyWallet = currencyWallet;
+    this.placementCooldowns = placementCooldowns;
   }
 
   init(): void {
@@ -77,7 +102,9 @@ export class Shop {
 
     this.shopContainer = document.createElement("div");
     this.shopContainer.id = "shop";
+    this.netButton = this.createNetButton();
 
+    shopWrapper.appendChild(this.netButton);
     shopWrapper.appendChild(this.shopContainer);
 
     topBar.appendChild(currencyDisplay);
@@ -90,8 +117,15 @@ export class Shop {
       this.updateCurrency();
       this.updateCardAvailability();
     });
+    this.placementCooldowns.subscribe(() => {
+      this.updateCardAvailability();
+    });
+    window.addEventListener(DRAG_STATE_CHANGE_EVENT, () => {
+      this.updateToolSelection();
+    });
     this.renderShop();
     this.updateCardAvailability();
+    this.updateToolSelection();
   }
 
   private updateCurrency(): void {
@@ -99,10 +133,28 @@ export class Shop {
   }
 
   private updateCardAvailability(): void {
-    this.chickenCards.forEach(({ card, chicken }) => {
+    this.chickenCards.forEach(({ card, chicken, cooldownOverlay, cooldownText }) => {
       const canAfford = this.currencyWallet.canAfford("exceeds", chicken.cost);
-      card.classList.toggle("disabled", !canAfford);
-      card.setAttribute("aria-disabled", `${!canAfford}`);
+      const cooldown = this.placementCooldowns.getSnapshot(chicken.id);
+      const isDisabled = !canAfford || cooldown.active;
+
+      card.classList.toggle("disabled", isDisabled);
+      card.classList.toggle("cooldown-active", cooldown.active);
+      card.setAttribute("aria-disabled", `${isDisabled}`);
+      card.setAttribute("aria-busy", `${cooldown.active}`);
+      cooldownOverlay.style.transform = `scaleY(${cooldown.progress})`;
+      cooldownText.textContent = cooldown.active
+        ? `${Math.ceil(cooldown.remainingMs / 1000)}s`
+        : "";
+    });
+  }
+
+  private updateToolSelection(): void {
+    const netSelected = dragState.activeTool === "net";
+    this.netButton.classList.toggle("selected-tool", netSelected);
+    this.netButton.setAttribute("aria-pressed", `${netSelected}`);
+    this.chickenCards.forEach(({ card }) => {
+      card.classList.toggle("selected-tool", dragState.isDragging && !netSelected);
     });
   }
 
@@ -120,6 +172,7 @@ export class Shop {
 
     const img = document.createElement("img");
     img.src = chicken.image;
+    img.alt = "";
 
     const name = document.createElement("div");
     name.className = "name";
@@ -129,6 +182,14 @@ export class Shop {
     cost.className = "cost";
     cost.textContent = `${chicken.cost}`;
 
+    const cooldownOverlay = document.createElement("div");
+    cooldownOverlay.className = "cooldown-overlay";
+    cooldownOverlay.setAttribute("aria-hidden", "true");
+
+    const cooldownText = document.createElement("span");
+    cooldownText.className = "cooldown-text";
+    cooldownText.setAttribute("aria-hidden", "true");
+
     /**
      * DRAG START (PvZ-style pickup)
      * This does NOT place the unit yet - only signals game loop.
@@ -136,26 +197,62 @@ export class Shop {
     card.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
       e.preventDefault();
+      if (this.placementCooldowns.isOnCooldown(chicken.id)) {
+        return;
+      }
       if (!this.currencyWallet.canAfford("exceeds", chicken.cost)) {
         console.log(`Not enough exceeds for: ${chicken.name}`);
         return;
       }
 
+      dragState.activeTool = "place";
       dragState.isDragging = true;
       dragState.chicken = chicken;
       dragState.offsetX = 0;
       dragState.offsetY = 0;
+      notifyDragStateChanged();
 
       console.log(`Started dragging: ${chicken.name}`);
     });
 
     card.appendChild(cost);
+    card.appendChild(cooldownOverlay);
+    card.appendChild(cooldownText);
     card.appendChild(img);
     card.appendChild(name);
 
-    this.chickenCards.push({ card, chicken });
+    this.chickenCards.push({ card, chicken, cooldownOverlay, cooldownText });
 
     return card;
+  }
+
+  private createNetButton(): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.id = "net-tool";
+    button.className = "tool-card";
+    button.type = "button";
+    button.setAttribute("aria-label", "Select chicken net");
+
+    const image = document.createElement("img");
+    image.src = CHICKEN_NET_IMAGE;
+    image.alt = "";
+    image.className = "tool-card-image";
+    button.appendChild(image);
+
+    button.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+
+      event.preventDefault();
+      const nextTool = dragState.activeTool === "net" ? "place" : "net";
+      dragState.activeTool = nextTool;
+      dragState.isDragging = false;
+      dragState.chicken = null;
+      dragState.offsetX = 0;
+      dragState.offsetY = 0;
+      notifyDragStateChanged();
+    });
+
+    return button;
   }
 
   private renderShop(): void {

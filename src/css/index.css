@@ -30,9 +30,9 @@ body {
 }
 
 .app-shell {
-  width: 800px;
-  height: 400px;
-  min-height: 400px;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 2 / 1;
   position: relative;
   overflow: hidden;
 }
@@ -44,6 +44,7 @@ body {
   border: 2px solid #334155;
   border-radius: 24px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  width: 100%;
 }
 
 .menu-card {
@@ -159,19 +160,16 @@ body {
   font-size: 1.1rem;
 }
 
-/* PvZ-style main game container */
 .game-container {
   position: relative;
-
-  width: 800px;
-  height: 400px;
-
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 2 / 1;
   margin: 20px auto;
-
   overflow: hidden;
-
   background: #0f0f0f;
   border: 3px solid #2a1f10;
+  touch-action: none; /* Prevents scrolling/zooming while playing */
 }
 
 .game-container {
@@ -358,4 +356,155 @@ canvas {
 .canvas-button:hover {
   transform: translateY(-2px);
   filter: brightness(1.05);
+}
+
+#fastForwardBtn {
+  right: 92px;
+}
+
+#fastForwardBtn[data-active="true"] {
+  background-color: #22c55e;
+  color: #052e16;
+}
+
+#spawnEnemyBtn {
+  right: 174px;
+}
+
+.game-menu-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.66);
+}
+
+.game-menu-overlay[hidden] {
+  display: none;
+}
+
+.game-menu-dialog {
+  width: min(320px, 100%);
+  padding: 24px;
+  color: #f8fafc;
+  background: #111827;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
+  text-align: center;
+}
+
+.game-menu-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+}
+
+.game-menu-message {
+  margin: 0 0 20px;
+  color: #d1d5db;
+}
+
+.game-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-menu-button {
+  border: none;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease;
+}
+
+.game-menu-button.primary {
+  background: #f59e0b;
+  color: #111827;
+}
+
+.game-menu-button.secondary {
+  background: #374151;
+  color: #f8fafc;
+}
+
+.game-menu-button:hover,
+.game-menu-button:focus-visible {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.settings-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.settings-popup-overlay[hidden] {
+  display: none;
+}
+
+.settings-popup-panel {
+  width: min(920px, 100%);
+  max-height: calc(100vh - 56px);
+  overflow: hidden;
+  color: #f8fafc;
+  background: #111827;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+}
+
+.in-game-settings-content {
+  max-height: calc(100vh - 56px);
+  min-height: 520px;
+  padding: 30px 34px;
+}
+
+.settings-popup-title {
+  margin: 0 0 8px;
+  font-size: 1.8rem;
+  line-height: 1.1;
+}
+
+.in-game-settings-content .settings-layout {
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 0;
+  gap: 18px;
+}
+
+.in-game-settings-content .settings-panel {
+  border-radius: 8px;
+}
+
+.in-game-settings-content .settings-panel h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.in-game-settings-content .settings-actions {
+  margin-top: 14px;
+}
+
+@media (max-width: 700px) {
+  .in-game-settings-content {
+    min-height: 0;
+    padding: 20px;
+  }
+
+  .in-game-settings-content .settings-layout {
+    grid-template-columns: 1fr;
+  }
 }
