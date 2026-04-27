@@ -2,7 +2,8 @@ import { applyCanvasDimensions, DEFAULT_CANVAS_SIZE } from "./canvas.js";
 import { CurrencyWallet } from "./currency.js";
 import { initGameMenu } from "./gameMenu.js";
 import { startGameLoop } from "./gameLoop.js";
-import { Shop } from "./shop.js";
+import { PlacementCooldowns } from "./placementCooldowns.js";
+import { Shop, SHOP_CHICKENS } from "./shop.js";
 
 function bootstrap(): void {
   const canvas = document.getElementById("game-canvas") as HTMLCanvasElement | null;
@@ -24,11 +25,22 @@ function bootstrap(): void {
 
   // SHOP UI
   const currencyWallet = new CurrencyWallet({ exceeds: 100, eggs: 0 });
-  const shop = new Shop(currencyWallet);
+  const placementCooldowns = new PlacementCooldowns(
+    SHOP_CHICKENS.map((chicken) => ({
+      unitId: chicken.id,
+      durationMs: chicken.cooldownMs,
+    })),
+  );
+  const shop = new Shop(currencyWallet, placementCooldowns);
   shop.init();
 
   // START GAME LOOP
-  const gameLoopControls = startGameLoop(canvas, renderingContext, currencyWallet);
+  const gameLoopControls = startGameLoop(
+    canvas,
+    renderingContext,
+    currencyWallet,
+    placementCooldowns,
+  );
   initGameMenu(gameLoopControls);
 
   document.getElementById("spawnEnemyBtn")?.addEventListener("click", () => {

@@ -1,4 +1,6 @@
 import type { GameState } from "./types.js";
+import type { CurrencyWallet } from "./currency.js";
+import type { PlacementCooldowns } from "./placementCooldowns.js";
 import {
   FAST_FORWARD_SPEED_MULTIPLIER,
   NORMAL_SPEED_MULTIPLIER,
@@ -63,7 +65,11 @@ export function matchesFastForwardKey(event: KeyboardEvent): boolean {
   return event.key.toLowerCase() === configuredKey.toLowerCase();
 }
 
-export function publishDebugState(gameState: GameState): void {
+export function publishDebugState(
+  gameState: GameState,
+  currencyWallet: CurrencyWallet,
+  placementCooldowns: PlacementCooldowns,
+): void {
   (
     window as Window & {
       __cvkDebug?: {
@@ -73,6 +79,14 @@ export function publishDebugState(gameState: GameState): void {
           speedMultiplier: number;
           fastForwardEnabled: boolean;
         };
+        getPlacementCooldowns: () => Array<{
+          unitId: string;
+          durationMs: number;
+          remainingMs: number;
+          progress: number;
+          active: boolean;
+        }>;
+        grantCurrency: (type: "exceeds" | "eggs", amount: number) => void;
       };
     }
   ).__cvkDebug = {
@@ -82,5 +96,9 @@ export function publishDebugState(gameState: GameState): void {
       speedMultiplier: gameState.speedMultiplier,
       fastForwardEnabled: gameState.fastForwardEnabled,
     }),
+    getPlacementCooldowns: () => placementCooldowns.getAllSnapshots(),
+    grantCurrency: (type, amount) => {
+      currencyWallet.add(type, amount);
+    },
   };
 }
