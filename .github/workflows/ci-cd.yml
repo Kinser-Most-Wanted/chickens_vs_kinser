@@ -3,14 +3,20 @@ name: CI/CD
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
+    paths:
+      - 'pbis/**/*.md'
+
   push:
     branches:
       - main
       - stage
+    paths:
+      - 'pbis/**/*.md'
 
 permissions:
   id-token: write
   contents: read
+  issues: write
 
 jobs:
   run-lint:
@@ -25,6 +31,30 @@ jobs:
     if: github.event.action != 'closed'
     needs: [run-lint, run-tests]
     uses: ./.github/workflows/deploy.yml
+
+  create-pbis:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install script dependencies
+        working-directory: scripts
+        run: npm install
+
+      - name: Run PBI generator
+        run: node scripts/parseAndCreatePBIs.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   destroy-pr:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
