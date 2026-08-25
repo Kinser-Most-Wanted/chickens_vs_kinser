@@ -12,6 +12,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR/.."
 TEMPLATE_FILE="$SCRIPT_DIR/deploy.yml"
 SITE_DIR="${2:-$PROJECT_ROOT/src}"
+DOMAIN_NAME="${DOMAIN_NAME:-}"
+HOSTED_ZONE_ID="${HOSTED_ZONE_ID:-}"
+
+if { [ -n "$DOMAIN_NAME" ] && [ -z "$HOSTED_ZONE_ID" ]; } || \
+  { [ -z "$DOMAIN_NAME" ] && [ -n "$HOSTED_ZONE_ID" ]; }; then
+  echo "DOMAIN_NAME and HOSTED_ZONE_ID must either both be set or both be empty"
+  exit 1
+fi
+
+PARAMETER_OVERRIDES=()
+if [ -n "$DOMAIN_NAME" ]; then
+  PARAMETER_OVERRIDES=(
+    --parameter-overrides
+    "DomainName=$DOMAIN_NAME"
+    "HostedZoneId=$HOSTED_ZONE_ID"
+  )
+fi
 
 if [ ! -f "$TEMPLATE_FILE" ]; then
   echo "Template file not found: $TEMPLATE_FILE"
@@ -36,6 +53,7 @@ echo "Using site directory: $SITE_DIR"
 aws cloudformation deploy \
   --stack-name "$STACK_NAME" \
   --template-file "$TEMPLATE_FILE" \
+  "${PARAMETER_OVERRIDES[@]}" \
   --no-fail-on-empty-changeset
 
 BUCKET_NAME="$(aws cloudformation describe-stacks \
@@ -72,5 +90,4 @@ aws cloudfront create-invalidation \
   --paths "/*"
 
 echo "Deploy complete"
-echo "Site URL: $SITE_URL"cho "Deploy complete"
 echo "Site URL: $SITE_URL"

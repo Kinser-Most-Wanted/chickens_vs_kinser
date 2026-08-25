@@ -22,6 +22,8 @@ jobs:
             echo "stack_name=chickens-vs-kinser-pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "stack_name=chickens-vs-kinser" >> "$GITHUB_OUTPUT"
+            echo "domain_name=chickens-vs-kinser.com" >> "$GITHUB_OUTPUT"
+            echo "hosted_zone_id=Z01181143NS9XPFWC1NDX" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.ref_name }}" == "stage" ]]; then
             echo "stack_name=chickens-vs-kinser-stage" >> "$GITHUB_OUTPUT"
           else
@@ -45,3 +47,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: ./deploy/deploy.sh "${{ steps.stack.outputs.stack_name }}"
+        env:
+          DOMAIN_NAME: ${{ steps.stack.outputs.domain_name }}
+          HOSTED_ZONE_ID: ${{ steps.stack.outputs.hosted_zone_id }}

@@ -118,6 +118,26 @@ Resources:
                   - cloudfront:UntagResource
                 Resource: "*"
 
+              - Sid: CertificateDeploy
+                Effect: Allow
+                Action:
+                  - acm:AddTagsToCertificate
+                  - acm:DeleteCertificate
+                  - acm:DescribeCertificate
+                  - acm:ListTagsForCertificate
+                  - acm:RemoveTagsFromCertificate
+                  - acm:RequestCertificate
+                Resource: "*"
+
+              - Sid: Route53Deploy
+                Effect: Allow
+                Action:
+                  - route53:ChangeResourceRecordSets
+                  - route53:GetChange
+                  - route53:GetHostedZone
+                  - route53:ListResourceRecordSets
+                Resource: "*"
+
 Outputs:
   GitHubOIDCProviderArn:
     Condition: ShouldCreateOIDCProvider
