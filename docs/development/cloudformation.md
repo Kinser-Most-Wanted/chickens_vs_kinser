@@ -10,6 +10,7 @@ The deployment stack creates:
 - a CloudFront Origin Access Control (OAC)
 - an S3 bucket policy allowing CloudFront to read from the bucket
 - a CloudFront distribution in front of the bucket
+- an optional ACM certificate and Route 53 aliases for a custom domain
 
 ## Why CloudFormation is used
 
@@ -31,6 +32,10 @@ The stack name identifies the environment:
 - `chickens-vs-kinser-pr-<pr-number>`
 
 That stack name is also used to derive the S3 bucket name and related resource names.
+
+The production workflow supplies `chickens-vs-kinser.com` and its Route 53 hosted
+zone to the stack. Stage and pull request stacks leave the custom-domain parameters
+empty and continue to use their generated CloudFront domain names.
 
 ## Deployment flow
 
