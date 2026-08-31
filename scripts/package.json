@@ -1,0 +1,7 @@
+{
+  "name": "pbi-automation",
+  "version": "1.0.0",
+  "dependencies": {
+    "@octokit/rest": "^20.0.0"
+  }
+}

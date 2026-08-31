@@ -1,125 +1,10 @@
-# **\=== SUGGESTED SPRINT GOALS \===**
-
----
-
-## **SPRINT: 3**
-
-### **SPRINT GOAL:**
-
-Enhance usability and system functionality by implementing persistent game state, configurable settings, and core gameplay controls while refining the user interface.
-
----
-
-### **SOFTWARE ENGINEERING TOPICS:**
-
-* State Management (saving/loading game data)  
-* File Handling (local storage, config files)  
-* SDLC (feature expansion and validation)  
-* Agile & Scrum (incremental feature delivery)  
-* Testing (validating persistence and configs)  
-* Teamwork & Collaboration  
-  ---
-
-  ## **SUPPORTING PBIs:**
-
-  ---
-
-  ### **Priority: High**
-
-**User Story:**  
-As a player, I want to save my game progress into one of multiple slots, so that I can return to my game later.
-
-**Acceptance Criteria:**
-
-* Player can save to one of three save slots  
-* Each save slot stores independent data  
-* Save data persists after restarting the application  
-* Saved data includes grid state, currency, and progression  
-* Save functionality works without errors during demo  
-  ---
-
-  ### **Priority: High**
-
-**User Story:**  
-As a player, I want to load a saved game at startup, so that I can continue from previous progress.
-
-**Acceptance Criteria:**
-
-* Three save slots are displayed at startup  
-* Player can select an existing save or start a new game  
-* Game state restores correctly from selected save  
-* No errors occur during load process  
-  ---
-
-  ### **Priority: High**
-
-**User Story:**  
-As a player, I want to modify game settings through a config file, so that I can customize gameplay.
-
-**Acceptance Criteria:**
-
-* Config file is editable outside the game  
-* Config changes can be reloaded during runtime  
-* Config controls include gameplay-related values (e.g., speed, grid size)  
-* Invalid configurations are handled without crashing  
-  ---
-
-  ### **Priority: High**
-
-**User Story:**  
-As a player, I want to pause and resume the game, so that I can control gameplay flow.
-
-**Acceptance Criteria:**
-
-* Game pauses completely when activated  
-* No updates occur while paused  
-* Resume restores gameplay correctly  
-* Pause/resume is demonstrated during review  
-  ---
-
-  ### **Priority: Medium**
-
-**User Story:**  
-As a player, I want to speed up gameplay, so that I can progress faster when desired.
-
-**Acceptance Criteria:**
-
-* Fast-forward toggle is available  
-* Game speed increases when activated  
-* Game logic remains stable at increased speed  
-  ---
-
-  ### **Priority: Medium**
-
-**User Story:**  
-As a developer, I want to organize the UI layout, so that the interface is clear and usable.
-
-**Acceptance Criteria:**
-
-* UI elements are grouped logically (controls, game area, indicators)  
-* UI does not obstruct gameplay  
-* Layout is consistent across runs  
-  ---
-
-  ### **Priority: Medium**
-
-**User Story:**  
-As a player, I want to see wave progression, so that I understand my progress in the game.
-
-**Acceptance Criteria:**
-
-* A visual progress indicator is displayed  
-* Progress updates in real time  
-* Progress reflects current wave accurately  
-  ---
-
-  ---
+ ---
 
   # **\=== SUGGESTED SPRINT GOALS \===**
 
   ---
 
-  ## **SPRINT: 4**
+  ## **SPRINT: 3**
 
   ### **SPRINT GOAL:**
 
@@ -261,3 +146,121 @@ As a player, I want to quickly restart the game, so that I can try again without
 15. Additional UI polish  
 16. Additional gameplay balancing  
 17. Extended configuration options
+
+
+# **\=== SUGGESTED SPRINT GOALS \===**
+
+---
+
+## **SPRINT: 4**
+
+### **SPRINT GOAL:**
+
+Enhance usability and system functionality by implementing persistent game state, configurable settings, and core gameplay controls while refining the user interface.
+
+---
+
+### **SOFTWARE ENGINEERING TOPICS:**
+
+* State Management (saving/loading game data)  
+* File Handling (local storage, config files)  
+* SDLC (feature expansion and validation)  
+* Agile & Scrum (incremental feature delivery)  
+* Testing (validating persistence and configs)  
+* Teamwork & Collaboration  
+  ---
+
+  ## **SUPPORTING PBIs:**
+
+  ---
+
+  ### **Priority: High**
+
+**User Story:**  
+As a player, I want to save my game progress into one of multiple slots, so that I can return to my game later.
+
+**Acceptance Criteria:**
+
+* Player can save to one of three save slots  
+* Each save slot stores independent data  
+* Save data persists after restarting the application  
+* Saved data includes grid state, currency, and progression  
+* Save functionality works without errors during demo  
+  ---
+
+  ### **Priority: High**
+
+**User Story:**  
+As a player, I want to load a saved game at startup, so that I can continue from previous progress.
+
+**Acceptance Criteria:**
+
+* Three save slots are displayed at startup  
+* Player can select an existing save or start a new game  
+* Game state restores correctly from selected save  
+* No errors occur during load process  
+  ---
+
+  ### **Priority: High**
+
+**User Story:**  
+As a player, I want to modify game settings through a config file, so that I can customize gameplay.
+
+**Acceptance Criteria:**
+
+* Config file is editable outside the game  
+* Config changes can be reloaded during runtime  
+* Config controls include gameplay-related values (e.g., speed, grid size)  
+* Invalid configurations are handled without crashing  
+  ---
+
+  ### **Priority: High**
+
+**User Story:**  
+As a player, I want to pause and resume the game, so that I can control gameplay flow.
+
+**Acceptance Criteria:**
+
+* Game pauses completely when activated  
+* No updates occur while paused  
+* Resume restores gameplay correctly  
+* Pause/resume is demonstrated during review  
+  ---
+
+  ### **Priority: Medium**
+
+**User Story:**  
+As a player, I want to speed up gameplay, so that I can progress faster when desired.
+
+**Acceptance Criteria:**
+
+* Fast-forward toggle is available  
+* Game speed increases when activated  
+* Game logic remains stable at increased speed  
+  ---
+
+  ### **Priority: Medium**
+
+**User Story:**  
+As a developer, I want to organize the UI layout, so that the interface is clear and usable.
+
+**Acceptance Criteria:**
+
+* UI elements are grouped logically (controls, game area, indicators)  
+* UI does not obstruct gameplay  
+* Layout is consistent across runs  
+  ---
+
+  ### **Priority: Medium**
+
+**User Story:**  
+As a player, I want to see wave progression, so that I understand my progress in the game.
+
+**Acceptance Criteria:**
+
+* A visual progress indicator is displayed  
+* Progress updates in real time  
+* Progress reflects current wave accurately  
+  ---
+
+ 
